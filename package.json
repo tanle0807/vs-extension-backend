@@ -4,7 +4,7 @@
 	"icon": "logo.png",
 	"displayName": "backend",
 	"description": "backend",
-	"version": "0.13.0",
+	"version": "0.14.0",
 	"engines": {
 		"vscode": "^1.41.0"
 	},
