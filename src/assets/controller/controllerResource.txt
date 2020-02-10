@@ -1,0 +1,103 @@
+// IMPORT LIBRARY
+import { Controller, Post, UseAuth, Req, Request, Res, Response, HeaderParams, BodyParams, Get, PathParams, QueryParams } from '@tsed/common';
+import { Docs } from '@tsed/swagger';
+import Joi from '@hapi/joi';
+import { Like } from 'typeorm';
+
+
+// IMPORT CUSTOM
+import { VerificationJWT } from '../../middleware/auth/VerificationJWT';
+import { Validator } from '../../middleware/validator/Validator';
+import { {{classify}} } from '../../entity/{{classify}}';
+
+
+@Controller("{{controller}}")
+@Docs("docs_{{docs}}")
+export class {{classify}}Controller {
+    constructor() { }
+
+
+    // =====================GET LIST=====================
+    @Get('')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        page: Joi.number().min(0),
+        limit: Joi.number().min(0)
+    })
+    async findAll(
+        @HeaderParams("token") token: string,
+        @QueryParams("page") page: number,
+        @QueryParams("limit") limit: number,
+        @QueryParams("search") search: string = "",
+        @Req() req: Request,
+        @Res() res: Response
+    ) {
+        const [{{camel}}, total] = await {{classify}}.findAndCount({
+            skip: (page - 1) * limit,
+            take: limit,
+            where: {
+                name: Like(`%${search}%`),
+                // name: Raw(alias => `concat( ${alias}, " ",  phone) LIKE "%${search}%"`),
+            },
+            order: { id: "DESC" },
+        })
+        return res.sendOK({ data: {{camel}}, total })
+    }
+
+
+    // =====================GET ITEM=====================
+    @Get('/:{{camel}}Id')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        {{camel}}Id: Joi.number().required(),
+    })
+    async findOne(
+        @Req() req: Request,
+        @Res() res: Response,
+        @HeaderParams("token") token: string,
+        @PathParams("{{camel}}Id"){{camel}}Id: number,
+    ) {
+        const {{camel}} = await {{classify}}.findOneOrThrowId({{camel}}Id)
+        return res.sendOK({{camel}})
+    }
+
+
+    // =====================CREATE ITEM=====================
+    @Post('')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        {{camel}}: Joi.required(),
+    })
+    async create(
+        @Req() req: Request,
+        @Res() res: Response,
+        @HeaderParams("token") token: string,
+        @BodyParams("{{camel}}") {{camel}}: {{classify}},
+    ) {
+        await {{camel}}.save()
+        return res.sendOK({{camel}})
+    }
+    
+
+    // =====================UPDATE ITEM=====================
+    @Post('/:{{camel}}Id/update')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        {{camel}}: Joi.required(),
+        {{camel}}Id: Joi.number().required()
+    })
+    async update(
+        @Req() req: Request,
+        @Res() res: Response,
+        @HeaderParams("token") token: string,
+        @BodyParams("{{camel}}") {{camel}}: {{classify}},
+        @PathParams("{{camel}}Id") {{camel}}Id: number,
+    ) {
+        // This will check and throw error if not exist 
+        await {{classify}}.findOneOrThrowId({{camel}}Id)
+        {{camel}}.id = +{{camel}}Id
+        await {{camel}}.save()
+        return res.sendOK({{camel}})
+    }
+
+} // END FILE

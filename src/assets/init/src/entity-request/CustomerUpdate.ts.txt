@@ -1,0 +1,19 @@
+// IMPORT LIBRARY
+import { JsonProperty } from "@tsed/common";
+
+// IMPORT CUSTOM
+import { Customer } from "../entity/Customer";
+
+export class CustomerUpdate {
+    // Transform to draw entity
+    toCustomer(): Customer {
+        let customer = new Customer()
+        customer.email = this.email
+
+        return customer
+    }
+
+    @JsonProperty()
+    email: string
+
+} // END FILE

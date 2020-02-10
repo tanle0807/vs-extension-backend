@@ -1,0 +1,60 @@
+import { Service } from "@tsed/common";
+
+import { CoreService } from "../core/services/CoreService";
+import { Role } from "../entity/Role";
+import { Permission } from "../entity/Permission";
+import { PermissionImport } from "../entity-request/PermissionImport";
+
+const ROLE_ADMIN = 1
+@Service()
+export class RoleService extends CoreService {
+
+    async resetRoleForAdmin(permissions: Permission[]) {
+        let adminRole = await Role.findOne(ROLE_ADMIN)
+        adminRole.permissions = permissions
+        adminRole.save()
+    }
+
+    async import(permissionImports: PermissionImport[]): Promise<Permission[]> {
+        let permissions = this.convertDataImport(permissionImports)
+        console.log("permissions", permissions);
+
+        await Permission.delete({})
+        await Permission.save(permissions)
+        return permissions
+
+    }
+
+    convertDataImport(permissionImports: PermissionImport[], path: string = ""): Permission[] {
+        let permissions: Permission[] = []
+        for (let i = 0; i < permissionImports.length; i++) {
+            const permissionImport = permissionImports[i];
+            //init path
+            if (!permissionImport.path.includes("/")) {
+                permissionImport.path = "/" + permissionImport.path
+            }
+
+            if (!permissionImport.children || permissionImport.children.length <= 0) {
+                let permission = new Permission()
+                permission.path = path + permissionImport.path
+                permissions.push(permission)
+            }
+            else {
+                permissions = permissions.concat(this.convertDataImport(permissionImport.children, permissionImport.path))
+            }
+        };
+        return permissions
+    }
+
+
+    // =====================INIT=====================
+    async initRole(id: number, name: string, description: string) {
+        const role = new Role()
+        role.id = id
+        role.name = name
+        role.description = description
+        await role.save()
+        return role
+    }
+
+} // END FILE

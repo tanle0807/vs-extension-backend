@@ -1,0 +1,31 @@
+import { JsonProperty } from "@tsed/common";
+
+import { Staff } from '../entity/Staff';
+
+export class StaffUpdate {
+    toStaff(): Staff {
+        let admin = new Staff()
+        admin.name = this.name
+        admin.avatar = this.avatar
+        admin.phone = this.phone
+        admin.email = this.email
+        admin.isBlock = this.isBlock
+        return admin
+    }
+
+    @JsonProperty()
+    name: string;
+
+    @JsonProperty()
+    avatar: string;
+
+    @JsonProperty()
+    phone: string;
+
+    @JsonProperty()
+    email: string;
+
+    @JsonProperty()
+    isBlock: boolean;
+
+} // END FILE

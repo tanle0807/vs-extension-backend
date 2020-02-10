@@ -1,0 +1,26 @@
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, ManyToMany } from "typeorm";
+import { JsonProperty } from "@tsed/common";
+
+import { addPrefix } from "../util/helper"
+import CoreEntity from '../core/entity/CoreEntity';
+
+@Entity(addPrefix("{{snake}}"))
+export class {{classify}} extends CoreEntity {
+    constructor() {
+        super()
+    }
+
+    @PrimaryGeneratedColumn()
+    @JsonProperty()
+    id: number;
+
+    @Column()
+    @JsonProperty()
+    column: string;
+
+    // RELATIONS
+
+
+    // COMPUTES
+
+} // END FILE

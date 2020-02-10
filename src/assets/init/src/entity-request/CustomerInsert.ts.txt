@@ -1,0 +1,24 @@
+import { JsonProperty } from "@tsed/common";
+
+import { Customer } from '../entity/Customer';
+
+export class CustomerInsert {
+    toCustomer(): Customer {
+        const customer = new Customer()
+        customer.password = this.password
+        customer.email = this.email
+        customer.phone = this.phone
+
+        return customer
+    }
+
+    @JsonProperty()
+    password: string
+
+    @JsonProperty()
+    email: string
+
+    @JsonProperty()
+    phone: string
+
+} // END FILE

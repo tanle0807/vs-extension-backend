@@ -1,0 +1,18 @@
+// IMPORT LIBRARY
+import { JsonProperty } from "@tsed/common";
+
+// IMPORT CUSTOM
+import { {{classify}} } from '../entity/{{classify}}';
+
+export class {{classifyRaw}} {
+    // Transform to draw entity
+    to{{classify}}(): {{classify}} {
+        let {{camel}} = new {{classify}}()
+        {{camel}}.prop = this.prop
+        return {{camel}}
+    }
+
+    @JsonProperty()
+    prop: string
+    
+} // END FILE

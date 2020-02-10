@@ -1,0 +1,119 @@
+import { Request } from 'express';
+import jwt from 'jsonwebtoken';
+import { Unauthorized } from 'ts-httpexceptions';
+
+import AuthStrategy from './AuthStrategy';
+import { Staff } from '../../../entity/Staff';
+import { Customer } from '../../../entity/Customer';
+import logger from '../../../util/logger';
+import CONFIG from '../../../../config';
+import { Driver } from '../../../entity/Driver';
+
+export enum AuthType {
+    Staff = "ADMIN",
+    Customer = "CUSTOMER",
+    Driver = 'DRIVER'
+}
+
+interface JWTSignedData {
+    id: number,
+    type: AuthType,
+    ia?: number
+}
+
+export default class JWT implements AuthStrategy {
+    public async auth(req: Request): Promise<any> {
+        const baseUrl = req.baseUrl
+        if (this.checkRouter(baseUrl, AuthType.Staff)) {
+            await this.authenticateStaff(req)
+            return
+        }
+        if (this.checkRouter(baseUrl, AuthType.Driver)) {
+            await this.authenticateDriver(req)
+            return
+        }
+        await this.authenticateCustomer(req)
+    }
+
+
+    private checkRouter(baseUrl: string, type: AuthType) {
+        return baseUrl.includes(`${CONFIG.PREFIX_URL}/${type.toLowerCase()}`);
+    }
+
+    private async authenticateDriver(req: Request) {
+        let type = AuthType.Driver
+        const { token } = <{ token: string }>req.headers
+        let driverId = this.getAuthId(token, type);
+
+        if (!driverId)
+            throw new Unauthorized("Invalid token driver!");
+
+        const driver = await Driver.findOneOrThrowId(driverId);
+        if (!driver)
+            throw new Unauthorized("Find not found this user!");
+
+        req.driver = driver;
+        req.authType = type
+    }
+
+    private async authenticateStaff(req: Request) {
+        const type = AuthType.Staff
+        const { token } = req.headers
+        const staffId = this.getAuthId(token, type);
+
+        if (!staffId)
+            throw new Unauthorized("Invalid token staff!");
+
+        const staff = await Staff.findOneOrThrowId(staffId);
+
+        req.staff = staff;
+        req.authType = type
+    }
+
+
+    private async authenticateCustomer(req: Request) {
+        const type = AuthType.Customer
+        const { token } = <{ token: string }>req.headers
+
+        const customerId = this.getAuthId(token, type);
+        if (!customerId)
+            throw new Unauthorized("Invalid token!");
+
+        const customer = await Customer.findOneOrThrowId(customerId);
+
+        req.customer = customer;
+        req.authType = type
+    }
+
+
+    public getAuthId(token: any, type: AuthType): number {
+        if (!token) return 0
+
+        try {
+            const decoded = <JWTSignedData>jwt.verify(token, CONFIG.JWT_SECRET)
+            if (decoded.id && decoded.type == type) return decoded.id
+        } catch (error) {
+            console.log('error:', error)
+            logger('error').error('Error Get Authenticate ID: ', JSON.stringify(error))
+            return 0
+        }
+    }
+
+    public getIa(token: string): number {
+        if (token) {
+            try {
+                const decoded = <{ id: number, type: string, ia: number }>jwt.verify(token, CONFIG.JWT_SECRET)
+                return decoded.ia
+            } catch (error) {
+                return 0
+            }
+        }
+        return 0
+    }
+
+
+    public sign(data: JWTSignedData): string {
+        return jwt.sign(data, CONFIG.JWT_SECRET, { expiresIn: CONFIG.JWT_EXPIRE })
+    }
+
+}

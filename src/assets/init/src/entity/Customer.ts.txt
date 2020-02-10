@@ -1,0 +1,46 @@
+// IMPORT LIBRARY
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from "typeorm";
+import { JsonProperty } from "@tsed/common";
+import md5 from "md5";
+import moment from "moment";
+
+// IMPORT CUSTOM
+import { addPrefix } from "../util/helper"
+import CoreEntity from '../core/entity/CoreEntity';
+
+@Entity(addPrefix("customer"))
+export class Customer extends CoreEntity {
+    constructor() {
+        super()
+    }
+
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ select: false })
+    password: string;
+
+    @Column()
+    @JsonProperty()
+    username: string;
+
+    @Column({ default: '' })
+    @JsonProperty()
+    email: string
+
+    @Column({ default: '' })
+    @JsonProperty()
+    phone: string
+
+    @Column({ default: false })
+    @JsonProperty()
+    isBlock: boolean
+
+
+    // RELATIONS
+
+
+    // COMPUTES
+
+
+} // END FILE

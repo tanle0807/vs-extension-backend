@@ -1,0 +1,10 @@
+import { JsonProperty } from "@tsed/common";
+
+export class PermissionImport {
+    @JsonProperty()
+    path: string;
+
+    @JsonProperty()
+    children: PermissionImport[];
+
+}

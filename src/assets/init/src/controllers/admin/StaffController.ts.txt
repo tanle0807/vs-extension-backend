@@ -1,0 +1,278 @@
+import { RoleService } from './../../services/RoleService';
+// IMPORT LIBRARY
+import { Controller, Post, UseAuth, Req, Request, Res, Response, HeaderParams, BodyParams, Get, PathParams, QueryParams } from '@tsed/common';
+import { Docs } from '@tsed/swagger';
+import Joi from '@hapi/joi';
+import { Raw } from 'typeorm';
+
+// IMPORT CUSTOM
+import { VerificationJWT } from '../../middleware/auth/VerificationJWT';
+import { Validator } from '../../middleware/validator/Validator';
+import { Staff } from '../../entity/Staff';
+import { MultipartFile } from '@tsed/multipartfiles';
+import config from '../../../config';
+import { StaffService } from '../../services/StaffService';
+import JWT, { AuthType } from '../../middleware/auth/strategy/JWT';
+
+import { Role } from '../../entity/Role';
+import { StaffUpdate } from '../../entity-request/StaffUpdate';
+import Password from '../../util/password';
+
+// Admin - Staff
+@Controller("/admin/staff")
+@Docs("docs_admin")
+export class StaffController {
+    constructor(
+        private staffService: StaffService,
+        private roleService: RoleService
+    ) { }
+
+
+    // =====================LOGIN=====================
+    @Post('/login')
+    @Validator({
+        username: Joi.string().required(),
+        password: Joi.string().required()
+    })
+    async login(
+        @BodyParams('username') username: string,
+        @BodyParams('password') password: string,
+        @Res() res: Response
+    ) {
+        const user = await this.staffService.login(username, password);
+        if (!user)
+            return res.sendClientError('Tài khoản hoặc mật khẩu không đúng! Vui lòng thử lại');
+        if (user.isBlock)
+            return res.sendClientError('Tài khoản này đã bị khoá!');
+        const token = new JWT().sign({ id: user.id, type: AuthType.Staff });
+        return { token };
+    }
+
+
+    // =====================PROFILE=====================
+    @Get('/profile')
+    @UseAuth(VerificationJWT)
+    async getInfo(
+        @Req() req: Request,
+        @HeaderParams("token") token: string,
+    ) {
+        const staff = await Staff.findOneOrThrowId(req.staff.id, {
+            relations: ['role']
+        });
+        return staff;
+    }
+
+
+    // =====================UPDATE PASSWORD=====================
+    @Post('/profile/password/update')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        oldPassword: Joi.string().required(),
+        newPassword: Joi.string().required()
+    })
+    async changePassword(
+        @Req() req: Request,
+        @BodyParams('oldPassword') oldPassword: string,
+        @BodyParams('newPassword') newPassword: string,
+        @HeaderParams("token") token: string,
+        @Res() res: Response
+    ) {
+        const { id } = req.staff;
+        if (oldPassword == newPassword)
+            return res.sendClientError('Mật khẩu mới không được trùng mật khẩu cũ');
+
+        // Get user with old password
+        const staff = await this.staffService.isValidPassword(id, oldPassword);
+        if (!staff)
+            return res.sendClientError('Mật khẩu cũ không đúng')
+
+        // Update password
+        staff.password = await Password.hash(newPassword);
+        await staff.save();
+        return res.sendOK({}, 'Cập nhật mật khẩu thành công');
+    }
+
+
+    // =====================GET PERMISSION=====================
+    @Get('/profile/permission')
+    @UseAuth(VerificationJWT)
+    async getPermission(
+        @Req() req: Request,
+        @Res() res: Response,
+        @HeaderParams("token") token: string,
+    ) {
+        const { id } = req.staff;
+        const permissions = await this.staffService.getPermission(id);
+        return res.sendOK(permissions);
+    }
+    
+
+    // =====================GET LIST STAFF=====================
+    @Get('')
+    @UseAuth(VerificationJWT)
+    async findAll(
+        @QueryParams('page') page: number,
+        @QueryParams('limit') limit: number,
+        @QueryParams('search') search: string = '',
+        @QueryParams('isBlock') isBlock: boolean,
+        @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response
+    ) {
+        const where = {
+            name: Raw(alias => `concat( ${alias}, " ",  phone, " ", username) LIKE "%${search}%"`),
+            isBlock
+        };
+        if (req.query.isBlock === undefined) delete where.isBlock;
+
+        const [staff, total] = await Staff.findAndCount({
+            skip: (page - 1) * limit,
+            take: limit,
+            where,
+            relations: ['role'],
+            order: { id: 'DESC' }
+        });
+
+        return res.sendOK({ data: staff, total });
+    }
+
+
+    // =====================GET ANOTHER STAFF INFO=====================
+    @Get('/:staffId')
+    @UseAuth(VerificationJWT)
+    async findOne(
+        @PathParams('staffId') staffId: number,
+        @HeaderParams("token") token: string,
+    ) {
+        return await Staff.findOneOrThrowId(staffId, { relations: ['role'] });
+    }
+
+
+    // =====================CREATE ADMIN=====================
+    @Post('')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        staff: Joi.required(),
+        roleId: Joi.number().required()
+    })
+    async create(
+        @BodyParams('staff') staff: Staff,
+        @BodyParams('roleId') roleId: number,
+        @HeaderParams("token") token: string,
+    ) {
+        await this.staffService.checkDuplicate(staff);
+
+        staff.password = await Password.hash(staff.password);
+        staff.role = new Role();
+        staff.role.id = roleId;
+        delete staff.id;
+        await staff.save();
+
+        return { id: staff.id };
+    }
+
+
+    // =====================UPDATE ADMIN INFO=====================
+    @Post('/:staffId/update')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        staff: Joi.required(),
+        staffId: Joi.number().required()
+    })
+    async update(
+        @BodyParams('staff') staff: StaffUpdate,
+        @BodyParams("roleId") roleId: number,
+        @PathParams('staffId') staffId: number,
+        @HeaderParams("token") token: string,
+    ) {
+        await Staff.findOneOrThrowId(staffId);
+        const role = await Role.findOneOrThrowId(roleId)
+
+        const newStaff = staff.toStaff();
+        newStaff.id = staffId;
+        newStaff.role = role
+        await newStaff.save();
+
+        return { id: newStaff.id };
+    }
+
+
+    // =====================RESET PASSWORD=====================
+    @Post('/:staffId/password/reset')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        newPassword: Joi.string().required(),
+        staffId: Joi.number().required()
+    })
+    async resetPassword(
+        @BodyParams('newPassword') newPassword: string,
+        @PathParams('staffId') staffId: number,
+        @HeaderParams("token") token: string,
+    ) {
+        const staff = await Staff.findOneOrThrowId(staffId);
+        staff.password = await Password.hash(newPassword);
+        await staff.save();
+
+        return { id: staff.id };
+    }
+
+
+    // =====================UPDATE ADMIN ROLE=====================
+    @Post('/:staffId/update/role')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        roleId: Joi.number().required(),
+        staffId: Joi.number().required()
+    })
+    async updateRoleAdmin(
+        @BodyParams('roleId') roleId: number,
+        @PathParams('staffId') staffId: number,
+        @HeaderParams("token") token: string,
+    ) {
+        await Staff.findOneOrThrowId(staffId);
+        const role = await Role.findOneOrThrowId(roleId);
+
+        const user = new Staff();
+        user.id = staffId;
+        user.role = role;
+        await user.save();
+
+        return { id: user.id };
+    }
+
+
+    // =====================UPLOAD AVATAR=====================
+    @Post('/file/upload')
+    @UseAuth(VerificationJWT)
+    uploadFile(
+        @MultipartFile('file') file: Express.Multer.File,
+        @HeaderParams("token") token: string
+    ) {
+        file.path = file.path.replace(config.UPLOAD_DIR, '');
+        return file;
+    }
+
+
+    // =====================INIT=====================
+    @Post('/init')
+    @Validator({
+        bmdPassword: Joi.required()
+    })
+    async init(
+        @Res() res: Response,
+        @BodyParams('bmdPassword') bmdPassword: string,
+    ) {
+        if (bmdPassword == 'bmd1234567890') {
+            const roleAdmin = await this.roleService.initRole(1, 'Admin', 'Quản trị toàn hệ thống')
+            await this.roleService.initRole(2, 'User', 'Quản lí một vài tính năng')
+
+            this.staffService.initStaff(roleAdmin, 'Admin', 'admin', 'bmd1234567890')
+            this.staffService.initStaff(roleAdmin, 'Developer', 'develop', 'bmd1234567890')
+
+            return res.sendOK({}, 'Init success')
+        } else {
+            return res.sendClientError('Wrong password')
+        }
+    }
+
+} // END FILE

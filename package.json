@@ -1,0 +1,99 @@
+{
+	"name": "bmd-extension-backend",
+	"publisher": "bmd-extension",
+	"icon": "logo.png",
+	"displayName": "backend",
+	"description": "backend",
+	"version": "0.13.0",
+	"engines": {
+		"vscode": "^1.41.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "bmdextension.init",
+				"title": "BMD: Init Project"
+			},
+			{
+				"command": "bmdextension.createControllerResource",
+				"title": "BMD: New Controller Resource"
+			},
+			{
+				"command": "bmdextension.createController",
+				"title": "BMD: New Controller"
+			},
+			{
+				"command": "bmdextension.createService",
+				"title": "BMD: New Service"
+			},
+			{
+				"command": "bmdextension.createEntity",
+				"title": "BMD: New Entity"
+			},
+			{
+				"command": "bmdextension.createEntityRequest",
+				"title": "BMD: New Entity Request"
+			}
+		],
+		"menus": {
+			"explorer/context": [
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "bmdextension.createControllerResource",
+					"group": "bmd@1"
+				},
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "bmdextension.createController",
+					"group": "bmd@2"
+				},
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "bmdextension.createService",
+					"group": "bmd@2"
+				},
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "bmdextension.createEntity",
+					"group": "bmd@2"
+				},
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "bmdextension.createEntityRequest",
+					"group": "bmd@2"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./ && npm run copy:assets",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTest.js",
+		"copy:assets": "rm -rf ./out/assets/* && cp -rv src/assets/. out/assets/.",
+		"publish": "vsce publish minor"
+	},
+	"devDependencies": {
+		"@types/fs-extra": "^8.0.1",
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.7",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.41.0",
+		"glob": "^7.1.5",
+		"mocha": "^6.2.2",
+		"tslint": "^5.20.0",
+		"typescript": "^3.6.4",
+		"vscode-test": "^1.2.2"
+	},
+	"dependencies": {
+		"fs-extra": "^8.1.0"
+	}
+}
