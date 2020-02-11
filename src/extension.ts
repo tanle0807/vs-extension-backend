@@ -80,31 +80,31 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.GetListPagination, async (e) => {
-		controllerProvider.insertControllerFunc(ControllerAction.GetListPagination)
+		controllerProvider.insertControllerFunc(ControllerAction.GetListPagination, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.GetListAll, async (e) => {
-		controllerProvider.insertControllerFunc(ControllerAction.GetListAll)
+		controllerProvider.insertControllerFunc(ControllerAction.GetListAll, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.CreateItem, async (e) => {
-		controllerProvider.insertControllerFunc(ControllerAction.CreateItem)
+		controllerProvider.insertControllerFunc(ControllerAction.CreateItem, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.CreateItemEntityRequest, async (e) => {
-		controllerProvider.insertControllerFunc(ControllerAction.CreateItemEntityRequest)
+		controllerProvider.insertControllerFunc(ControllerAction.CreateItemEntityRequest, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.DeleteItemByRemove, async (e) => {
-		controllerProvider.insertControllerFunc(ControllerAction.DeleteItemByRemove)
+		controllerProvider.insertControllerFunc(ControllerAction.DeleteItemByRemove, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.DeleteItemByBlock, async (e) => {
-		controllerProvider.insertControllerFunc(ControllerAction.DeleteItemByBlock)
+		controllerProvider.insertControllerFunc(ControllerAction.DeleteItemByBlock, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.Upload, async (e) => {
-		controllerProvider.insertControllerFunc(ControllerAction.Upload)
+		controllerProvider.insertControllerFunc(ControllerAction.Upload, e)
 	}));
 
 

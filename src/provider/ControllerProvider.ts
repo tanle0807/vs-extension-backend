@@ -69,7 +69,8 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 controller.command = {
                     command: typeFunc,
                     title: 'Get list with pagination.',
-                    tooltip: 'Get list with pagination.'
+                    tooltip: 'Get list with pagination.',
+                    arguments: [document]
                 };
                 break
 
@@ -77,7 +78,8 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 controller.command = {
                     command: typeFunc,
                     title: 'Get list all.',
-                    tooltip: 'Get list all.'
+                    tooltip: 'Get list all.',
+                    arguments: [document]
                 };
                 break;
 
@@ -85,7 +87,8 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 controller.command = {
                     command: typeFunc,
                     title: 'Create new item by entity.',
-                    tooltip: 'Create new item by entity.'
+                    tooltip: 'Create new item by entity.',
+                    arguments: [document]
                 };
                 break;
 
@@ -93,7 +96,8 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 controller.command = {
                     command: typeFunc,
                     title: 'Create new item by entity request.',
-                    tooltip: 'Create new item by entity request.'
+                    tooltip: 'Create new item by entity request.',
+                    arguments: [document]
                 };
                 break;
 
@@ -101,7 +105,8 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 controller.command = {
                     command: typeFunc,
                     title: 'Delete item by remove.',
-                    tooltip: 'Delete item by remove.'
+                    tooltip: 'Delete item by remove.',
+                    arguments: [document]
                 };
                 break;
 
@@ -109,7 +114,8 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 controller.command = {
                     command: typeFunc,
                     title: 'Delete item by block.',
-                    tooltip: 'Delete item by block.'
+                    tooltip: 'Delete item by block.',
+                    arguments: [document]
                 };
                 break;
 
@@ -117,7 +123,8 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 controller.command = {
                     command: typeFunc,
                     title: 'Upload.',
-                    tooltip: 'Upload.'
+                    tooltip: 'Upload.',
+                    arguments: [document]
                 };
                 break;
 
@@ -129,17 +136,17 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         return controller;
     }
 
-    public insertControllerFunc(typeFunc: ControllerAction): void {
-        const documents = vscode.workspace.textDocuments
-        const document = documents[0]
+    public insertControllerFunc(typeFunc: ControllerAction, document: any): void {
+        // const documents = vscode.workspace.textDocuments
+        // const document = documents[0]
         const edit = new vscode.WorkspaceEdit();
         let entity = 'Entity'
         for (let index = 0; index < document.lineCount; index++) {
             const line = document.lineAt(index)
             if (line.text.includes('Controller')) {
                 let words = line.text.split(' ')
-                words = words.filter(word => word.includes('Controller'))
-                words = words.map(word => word = word.replace('Controller', ''))
+                words = words.filter((word: string) => word.includes('Controller'))
+                words = words.map((word: string) => word = word.replace('Controller', ''))
                 entity = words[0] || 'Entity'
             }
             if (line.text.includes('END FILE')) {
