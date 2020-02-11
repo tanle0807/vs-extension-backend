@@ -3,9 +3,21 @@ import * as vscode from 'vscode';
 import { getFullTextType } from '../util';
 
 export enum EntityAction {
+    AddProperty = 'BMD: Add property',
     OneToMany = 'BMD: OneToMany with ',
     ManyToOne = 'BMD: ManyToOne with ',
     ManyToMany = 'BMD: ManyToMany with ',
+}
+
+enum PropertyType {
+    String = 'STRING',
+    Number = 'NUMBER',
+    Boolean = 'BOOLEAN',
+    Text = 'TEXT',
+    Double = 'DOUBLE',
+    BalanceColumn = 'BALANCE COLUMN',
+    IsBlockColumn = 'IS BLOCK COLUMN',
+    IsShowColumn = 'IS SHOW COLUMN'
 }
 
 export class EntityActionProvider implements vscode.CodeActionProvider {
@@ -25,10 +37,12 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         const insertOneToMany = this.createEntityFunc(document, range, EntityAction.OneToMany);
         const insertManyToOne = this.createEntityFunc(document, range, EntityAction.ManyToOne);
         const insertManyToMany = this.createEntityFunc(document, range, EntityAction.ManyToMany);
+        const addProperty = this.createEntityFunc(document, range, EntityAction.AddProperty);
 
         vscode.commands.executeCommand('editor.action.formatDocument')
 
         return [
+            addProperty,
             insertOneToMany,
             insertManyToOne,
             insertManyToMany
@@ -42,15 +56,24 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
     }
 
 
-
     private createEntityFunc(document: vscode.TextDocument, range: vscode.Range, typeFunc: EntityAction): vscode.CodeAction {
         const entity = new vscode.CodeAction(typeFunc, vscode.CodeActionKind.QuickFix);
         switch (typeFunc) {
+            case EntityAction.AddProperty:
+                entity.command = {
+                    command: typeFunc,
+                    title: 'Add property: ',
+                    tooltip: 'Add property: ',
+                    arguments: [document]
+                };
+                break
+
             case EntityAction.OneToMany:
                 entity.command = {
                     command: typeFunc,
                     title: 'OneToMany with:',
-                    tooltip: 'OneToMany with:'
+                    tooltip: 'OneToMany with:',
+                    arguments: [document]
                 };
                 break
 
@@ -58,7 +81,8 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                 entity.command = {
                     command: typeFunc,
                     title: 'ManyToOne with:',
-                    tooltip: 'ManyToOne with:'
+                    tooltip: 'ManyToOne with:',
+                    arguments: [document]
                 };
                 break
 
@@ -66,7 +90,8 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                 entity.command = {
                     command: typeFunc,
                     title: 'ManyToMany with:',
-                    tooltip: 'ManyToMany with:'
+                    tooltip: 'ManyToMany with:',
+                    arguments: [document]
                 };
                 break
 
@@ -78,9 +103,114 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         return entity;
     }
 
-    public async insertEntityFunc(typeFunc: EntityAction): Promise<void> {
-        const documents = vscode.workspace.textDocuments
-        const document = documents[0]
+    public async addProperty(document: vscode.TextDocument) {
+        let template = ''
+        const type = await vscode.window.showQuickPick([
+            PropertyType.String,
+            PropertyType.Number,
+            PropertyType.Boolean,
+            PropertyType.Text,
+            PropertyType.Double,
+            PropertyType.IsBlockColumn,
+            PropertyType.IsShowColumn,
+            PropertyType.BalanceColumn,
+        ])
+        const edit = new vscode.WorkspaceEdit();
+
+        for (let index = 0; index < document.lineCount; index++) {
+            const line = document.lineAt(index)
+
+            if (line.text.includes('RELATIONS')) {
+                switch (type) {
+                    case PropertyType.String:
+                    case PropertyType.Number:
+                    case PropertyType.Boolean:
+                    case PropertyType.Double:
+                    case PropertyType.Text:
+                        template = await this.generateProperty(type)
+                        if (!template) return
+                        edit.insert(document.uri, new vscode.Position(index - 1, 0), template);
+                        break
+
+                    case PropertyType.BalanceColumn:
+                        edit.insert(document.uri, new vscode.Position(index - 1, 0), `
+                        @Column({ default: 0, width: 20 })
+                        @JsonProperty()
+                        balance: number;
+                        `);
+                        break
+
+                    case PropertyType.IsBlockColumn:
+                        edit.insert(document.uri, new vscode.Position(index - 1, 0), `
+                        @Column({ default: false })
+                        @JsonProperty()
+                        isBlock: boolean
+                        `);
+                        break
+
+                    case PropertyType.IsShowColumn:
+                        edit.insert(document.uri, new vscode.Position(index - 1, 0), `
+                        @Column({ default: true })
+                        @JsonProperty()
+                        isShow: boolean
+                        `);
+                        break
+
+                    default:
+                        break;
+                }
+            }
+        }
+
+        vscode.workspace.applyEdit(edit)
+    }
+
+    public async generateProperty(propertyType: PropertyType) {
+        const inputName = await vscode.window.showInputBox({ placeHolder: 'Enter property name: ' })
+        if (!inputName) return ''
+        const fullTextType = getFullTextType(inputName)
+        switch (propertyType) {
+            case PropertyType.String:
+                return `
+                @Column({ default: "" })
+                @JsonProperty()
+                ${fullTextType.camelCase}: string
+                `
+
+            case PropertyType.Number:
+                return `
+                @Column({ default: 0 })
+                @JsonProperty()
+                ${fullTextType.camelCase}: number
+                `
+
+            case PropertyType.Boolean:
+                return `
+                @Column({ default: false })
+                @JsonProperty()
+                ${fullTextType.camelCase}: boolean
+                `
+
+            case PropertyType.Double:
+                return `
+                @Column("double", { default: 0 })
+                @JsonProperty()
+                ${fullTextType.camelCase}: number
+                `
+
+            case PropertyType.Text:
+                return `
+                @Column('text', { default: '' })
+                @JsonProperty()
+                ${fullTextType.camelCase}: string;
+                `
+
+            default:
+                return ''
+        }
+    }
+
+    public async insertEntityFunc(typeFunc: EntityAction, document: vscode.TextDocument): Promise<void> {
         const edit = new vscode.WorkspaceEdit();
         let entity = 'Entity'
         let template = ''
@@ -127,33 +257,23 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
     }
 
     private generateRelations = async (name1: string, relation: EntityAction) => {
-        console.log('name1:', name1)
         const entities = FSProvider.getAllFileInFolder('/src/entity')
         const name2 = await vscode.window.showQuickPick(entities, { placeHolder: 'Select entity' })
-        console.log('name2:', name2)
         if (!name2) return ''
 
         const nameTextTypes1 = getFullTextType(name1)
         const nameTextTypes2 = getFullTextType(name2)
         let injectString1 = ''
-        let injectString2 = ''
+
         switch (relation) {
             case EntityAction.OneToMany:
                 injectString1 = `
                 @OneToMany(type => {{cap2}}, {{camel2}}s => {{camel2}}s.{{camel1}})
                 {{camel2}}s: {{cap2}}[];
                 `
-                // injectString2 = `
-                // @ManyToOne(type => {{cap1}}, {{camel1}} => {{camel1}}.{{camel2}}s)
-                // {{camel1}}: {{cap1}};
-                // `
                 break;
 
             case EntityAction.ManyToOne:
-                // injectString2 = `
-                // @OneToMany(type => {{cap2}}, {{camel2}}s => {{camel2}}s.{{camel1}})
-                // {{camel2}}s: {{cap2}}[];
-                // `
                 injectString1 = `
                 @ManyToOne(type => {{cap2}}, {{camel2}} => {{camel2}}.{{camel1}}s)
                 {{camel2}}: {{cap2}};
@@ -192,28 +312,5 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         }
         return properties
     }
-
-    private generateGetSum = async (name: string): Promise<any> => {
-        const properties = this.getPropertiesEntity(name)
-        const nameTextTypes = getFullTextType(name)
-        const result = await vscode.window.showQuickPick(properties, { placeHolder: 'Sum by: ' })
-        if (!result) return
-
-        let template = `
-                // =====================GET SUM {{upper}}=====================
-                async getTotal{{cap}}(): Promise<number> {
-                    const { sum } = await {{cap}}
-                        .createQueryBuilder('{{camel}}')
-                        .select("sum({{camel}}.${result})", 'sum')
-                        .getRawOne()
-                    return sum
-                }
-                `
-        template = template.replace(/{{upper}}/g, nameTextTypes.upperCase);
-        template = template.replace(/{{camel}}/g, nameTextTypes.camelCase);
-        template = template.replace(/{{cap}}/g, nameTextTypes.classifyCase);
-        return template
-    }
-
 
 }

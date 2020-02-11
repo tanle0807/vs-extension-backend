@@ -132,16 +132,20 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.AddProperty, async (e) => {
+		entityProvider.addProperty(e)
+	}));
+
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.OneToMany, async (e) => {
-		entityProvider.insertEntityFunc(EntityAction.OneToMany)
+		entityProvider.insertEntityFunc(EntityAction.OneToMany, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.ManyToOne, async (e) => {
-		entityProvider.insertEntityFunc(EntityAction.ManyToOne)
+		entityProvider.insertEntityFunc(EntityAction.ManyToOne, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.ManyToMany, async (e) => {
-		entityProvider.insertEntityFunc(EntityAction.ManyToMany)
+		entityProvider.insertEntityFunc(EntityAction.ManyToMany, e)
 	}));
 
 
