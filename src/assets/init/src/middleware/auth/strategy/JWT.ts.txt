@@ -7,7 +7,7 @@ import { Staff } from '../../../entity/Staff';
 import { Customer } from '../../../entity/Customer';
 import logger from '../../../util/logger';
 import CONFIG from '../../../../config';
-import { Driver } from '../../../entity/Driver';
+// import { Driver } from '../../../entity/Driver';
 
 export enum AuthType {
     Staff = "ADMIN",
@@ -28,10 +28,10 @@ export default class JWT implements AuthStrategy {
             await this.authenticateStaff(req)
             return
         }
-        if (this.checkRouter(baseUrl, AuthType.Driver)) {
-            await this.authenticateDriver(req)
-            return
-        }
+        // if (this.checkRouter(baseUrl, AuthType.Driver)) {
+        //     await this.authenticateDriver(req)
+        //     return
+        // }
         await this.authenticateCustomer(req)
     }
 
@@ -40,21 +40,21 @@ export default class JWT implements AuthStrategy {
         return baseUrl.includes(`${CONFIG.PREFIX_URL}/${type.toLowerCase()}`);
     }
 
-    private async authenticateDriver(req: Request) {
-        let type = AuthType.Driver
-        const { token } = <{ token: string }>req.headers
-        let driverId = this.getAuthId(token, type);
+    // private async authenticateDriver(req: Request) {
+    //     let type = AuthType.Driver
+    //     const { token } = <{ token: string }>req.headers
+    //     let driverId = this.getAuthId(token, type);
 
-        if (!driverId)
-            throw new Unauthorized("Invalid token driver!");
+    //     if (!driverId)
+    //         throw new Unauthorized("Invalid token driver!");
 
-        const driver = await Driver.findOneOrThrowId(driverId);
-        if (!driver)
-            throw new Unauthorized("Find not found this user!");
+    //     const driver = await Driver.findOneOrThrowId(driverId);
+    //     if (!driver)
+    //         throw new Unauthorized("Find not found this user!");
 
-        req.driver = driver;
-        req.authType = type
-    }
+    //     req.driver = driver;
+    //     req.authType = type
+    // }
 
     private async authenticateStaff(req: Request) {
         const type = AuthType.Staff

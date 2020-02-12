@@ -54,6 +54,7 @@ export default class Handler {
         FSProvider.copyFile('init/src/middleware/validator/Validator.ts.txt', 'src/middleware/validator/Validator.ts')
 
         FSProvider.copyFile('init/src/services/CustomerService.ts.txt', 'src/services/CustomerService.ts')
+        FSProvider.copyFile('init/src/services/MailService.ts.txt', 'src/services/MailService.ts')
         FSProvider.copyFile('init/src/services/StaffService.ts.txt', 'src/services/StaffService.ts')
         FSProvider.copyFile('init/src/services/RoleService.ts.txt', 'src/services/RoleService.ts')
 

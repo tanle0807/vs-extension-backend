@@ -170,7 +170,7 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
 
         let template = `
                 // =====================GET SUM {{upper}}=====================
-                async getTotal{{cap}}(): Promise<number> {
+                async getSum{{cap}}(): Promise<number> {
                     const { sum } = await {{cap}}
                         .createQueryBuilder('{{camel}}')
                         .select("sum({{camel}}.${result})", 'sum')
