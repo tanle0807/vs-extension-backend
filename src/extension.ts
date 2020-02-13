@@ -29,19 +29,19 @@ const entityProvider = new EntityActionProvider()
 export function activate(context: vscode.ExtensionContext) {
 
 	// Init project
-	context.subscriptions.push(vscode.commands.registerCommand(BMDCommand.Init, async (e) => {
-		if (FSProvider.checkExistProject()) {
-			vscode.window.showWarningMessage('Project is already exist.')
+	context.subscriptions.push(vscode.commands.registerCommand(BMDCommand.Init, async () => {
+		// if (FSProvider.checkExistProject()) {
+		// 	vscode.window.showWarningMessage('Project is already exist.')
 
-			const confirm = await vscode.window.showQuickPick([ConfirmationExistProject.Keep, ConfirmationExistProject.Replace])
-			if (confirm != ConfirmationExistProject.Replace) return
+		// 	const confirm = await vscode.window.showQuickPick([ConfirmationExistProject.Keep, ConfirmationExistProject.Replace])
+		// 	if (confirm != ConfirmationExistProject.Replace) return
 
-			await Handler.initProject()
-			vscode.window.showInformationMessage("Init project success");
-		} else {
-			await Handler.initProject()
-			vscode.window.showInformationMessage("Init project success");
-		}
+		// 	await Handler.initProject()
+		// 	vscode.window.showInformationMessage("Init project success");
+		// } else {
+		await Handler.initProject()
+		vscode.window.showInformationMessage("Init project success");
+		// }
 	}));
 
 

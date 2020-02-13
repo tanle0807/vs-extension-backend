@@ -12,9 +12,11 @@ interface KeywordPair {
 export class FSProvider {
 
     static checkExistProject(): boolean {
+        vscode.window.showInformationMessage('check project')
         const packageJson = path.join(rootPath, 'package.json');
         const env = path.join(rootPath, '.env');
         const srcFolder = path.join(rootPath, 'src');
+        vscode.window.showInformationMessage('check project xong')
         return fsExtra.existsSync(packageJson) ||
             fsExtra.existsSync(env) ||
             fsExtra.existsSync(srcFolder)
