@@ -1,0 +1,20 @@
+// IMPORT LIBRARY
+import { Service } from "@tsed/common";
+
+
+// IMPORT CUSTOM
+import { ContentDefine, ContentDefineType } from "../entity/ContentDefine";
+
+@Service()
+export class ContentDefineService {
+
+    public async initContentDefine(id: number, type: ContentDefineType, title: string, body: string) {
+        const content = new ContentDefine()
+        content.id = id
+        content.title = title
+        content.body = body
+        content.type = type
+        await content.save()
+    }
+
+} //END FILE

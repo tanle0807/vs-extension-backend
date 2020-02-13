@@ -1,0 +1,27 @@
+// IMPORT LIBRARY
+import { Service } from "@tsed/common";
+
+
+// IMPORT CUSTOM
+import { Configuration, ConfigurationParams } from "../entity/Configuration";
+
+
+@Service()
+export class ConfigurationService {
+
+    public async getParam(param: ConfigurationParams) {
+        const config = await Configuration.findOne({
+            where: { param }
+        })
+        return config.value || null
+    }
+
+    public async initParam(id: number, param: ConfigurationParams, value: string) {
+        const commission = new Configuration()
+        commission.id = id
+        commission.param = param
+        commission.value = value
+        await commission.save()
+    }
+
+} //END FILE

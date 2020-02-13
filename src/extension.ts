@@ -18,6 +18,8 @@ export enum BMDCommand {
 	CreateService = 'bmdextension.createService',
 	CreateEntity = 'bmdextension.createEntity',
 	CreateEntityRequest = 'bmdextension.createEntityRequest',
+	AddModuleContentDefine = 'bmdextension.contentDefine',
+	AddModuleConfiguration = 'bmdextension.configuration',
 }
 
 const controllerProvider = new ControllerActionProvider()
@@ -69,7 +71,13 @@ export function activate(context: vscode.ExtensionContext) {
 		await Handler.createEntityRequest(fsPath)
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand(BMDCommand.AddModuleContentDefine, async () => {
+		await Handler.addContentDefine()
+	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand(BMDCommand.AddModuleConfiguration, async () => {
+		await Handler.addConfiguration()
+	}));
 
 
 	// Use for controller action

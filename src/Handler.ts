@@ -104,6 +104,19 @@ export default class Handler {
         }
     }
 
+    static async addContentDefine() {
+        FSProvider.copyFile('contentDefine/AdminContentDefineController.ts.txt', 'src/controllers/admin/ContentDefineController.ts')
+        FSProvider.copyFile('contentDefine/CustomerContentDefineController.ts.txt', 'src/controllers/customer/ContentDefineController.ts')
+        FSProvider.copyFile('contentDefine/ContentDefine.ts.txt', 'src/entity/ContentDefine.ts')
+        FSProvider.copyFile('contentDefine/ContentDefineService.ts.txt', 'src/services/ContentDefineService.ts')
+    }
+
+    static async addConfiguration() {
+        FSProvider.copyFile('configuration/AdminConfigurationController.ts.txt', 'src/controllers/admin/ConfigurationController.ts')
+        FSProvider.copyFile('configuration/Configuration.ts.txt', 'src/entity/Configuration.ts')
+        FSProvider.copyFile('configuration/ConfigurationService.ts.txt', 'src/services/ConfigurationService.ts')
+    }
+
     static async createController(fsPath: string, assetPath: string) {
         if (!fsPath.includes('controllers/'))
             return vscode.window.showErrorMessage("Please select subfolder in 'controllers'")

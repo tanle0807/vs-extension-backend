@@ -40,6 +40,14 @@
 			{
 				"command": "bmdextension.createEntityRequest",
 				"title": "BMD: New Entity Request"
+			},
+			{
+				"command": "bmdextension.contentDefine",
+				"title": "BMD: Add Module Content Define"
+			},
+			{
+				"command": "bmdextension.configuration",
+				"title": "BMD: Add Module Configuration"
 			}
 		],
 		"menus": {
