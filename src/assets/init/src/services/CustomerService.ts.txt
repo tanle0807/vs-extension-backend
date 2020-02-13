@@ -1,12 +1,11 @@
 import { Service } from "@tsed/common";
 
-import { CoreService } from "../core/services/CoreService";
 import { Exception } from "ts-httpexceptions";
 import { Customer } from "../entity/Customer";
 import Password from "../util/password";
 
 @Service()
-export class CustomerService extends CoreService {
+export class CustomerService {
 
     // =====================LOGIN=====================
     public async login(phone: string, password: string): Promise<Customer> {

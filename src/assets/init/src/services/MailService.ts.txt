@@ -1,13 +1,13 @@
 import { Service } from "@tsed/common";
 
-import { CoreService } from "../core/services/CoreService";
 import { Mailer } from "../util/mailer";
 import config from "../../config";
 import fs from 'fs';
 import { Customer } from "../entity/Customer";
 
 @Service()
-export class MailService extends CoreService {
+export class MailService {
+
     async sendMailLinkReset(token: string, customer: Customer) {
         const subject = 'Yêu cầu quên mật khẩu.'
         const content = this.generateTemplateForgotPassword(token)

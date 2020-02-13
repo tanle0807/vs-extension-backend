@@ -57,6 +57,7 @@ export default class Handler {
         FSProvider.copyFile('init/src/services/MailService.ts.txt', 'src/services/MailService.ts')
         FSProvider.copyFile('init/src/services/StaffService.ts.txt', 'src/services/StaffService.ts')
         FSProvider.copyFile('init/src/services/RoleService.ts.txt', 'src/services/RoleService.ts')
+        FSProvider.copyFile('init/src/services/InitService.ts.txt', 'src/services/InitService.ts')
 
         FSProvider.copyFile('init/src/ssl/certificate-ca.crt', 'src/ssl/certificate-ca.crt')
         FSProvider.copyFile('init/src/ssl/certificate.crt', 'src/ssl/certificate.crt')

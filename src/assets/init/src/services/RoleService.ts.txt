@@ -1,13 +1,12 @@
 import { Service } from "@tsed/common";
 
-import { CoreService } from "../core/services/CoreService";
 import { Role } from "../entity/Role";
 import { Permission } from "../entity/Permission";
 import { PermissionImport } from "../entity-request/PermissionImport";
 
 const ROLE_ADMIN = 1
 @Service()
-export class RoleService extends CoreService {
+export class RoleService {
 
     async resetRoleForAdmin(permissions: Permission[]) {
         let adminRole = await Role.findOne(ROLE_ADMIN)

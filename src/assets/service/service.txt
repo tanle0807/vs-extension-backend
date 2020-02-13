@@ -3,11 +3,10 @@ import { Service } from "@tsed/common";
 
 
 // IMPORT CUSTOM
-import { CoreService } from "../core/services/CoreService";
 import { {{classify}} } from "../entity/{{classify}}";
 
 @Service()
-export class {{classify}}Service extends CoreService {
+export class {{classify}}Service {
 
     public async function() {
 
