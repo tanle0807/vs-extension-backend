@@ -10,6 +10,8 @@ enum Confirmation {
 export default class Handler {
 
     static async initProject() {
+        const pass = await vscode.window.showInputBox({ placeHolder: "Enter password: " })
+        if (pass != "bmd1234567890") return
         const projectName = await vscode.window.showInputBox({ placeHolder: "Enter project name: " })
         if (!projectName) return
         const projectNameTypes = getFullTextType(projectName)
