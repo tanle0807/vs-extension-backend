@@ -7,7 +7,8 @@ import { Staff } from '../../../entity/Staff';
 import { Customer } from '../../../entity/Customer';
 import logger from '../../../util/logger';
 import CONFIG from '../../../../config';
-// import { Driver } from '../../../entity/Driver';
+import { Driver } from '../../../entity/Driver';
+import { getCurrentTimeInt } from '../../../util/helper';
 
 export enum AuthType {
     Staff = "ADMIN",
@@ -24,15 +25,11 @@ interface JWTSignedData {
 export default class JWT implements AuthStrategy {
     public async auth(req: Request): Promise<any> {
         const baseUrl = req.baseUrl
-        if (this.checkRouter(baseUrl, AuthType.Staff)) {
-            await this.authenticateStaff(req)
-            return
-        }
-        // if (this.checkRouter(baseUrl, AuthType.Driver)) {
-        //     await this.authenticateDriver(req)
-        //     return
-        // }
-        await this.authenticateCustomer(req)
+        if (this.checkRouter(baseUrl, AuthType.Staff))
+            return await this.authenticateStaff(req)
+        if (this.checkRouter(baseUrl, AuthType.Driver))
+            return await this.authenticateDriver(req)
+        return await this.authenticateCustomer(req)
     }
 
 
@@ -40,49 +37,40 @@ export default class JWT implements AuthStrategy {
         return baseUrl.includes(`${CONFIG.PREFIX_URL}/${type.toLowerCase()}`);
     }
 
-    // private async authenticateDriver(req: Request) {
-    //     let type = AuthType.Driver
-    //     const { token } = <{ token: string }>req.headers
-    //     let driverId = this.getAuthId(token, type);
 
-    //     if (!driverId)
-    //         throw new Unauthorized("Invalid token driver!");
+    private async authenticateDriver(req: Request) {
+        const { token } = <{ token: string }>req.headers
+        let driverId = this.getAuthId(token, AuthType.Driver);
+        if (!driverId) throw new Unauthorized("Xác thực không hợp lệ!");
+        const driver = await Driver.findOneOrThrowId(driverId);
+        if (driver.isBlock) throw new Unauthorized("Tài khoản đã bị khoá!");
 
-    //     const driver = await Driver.findOneOrThrowId(driverId);
-    //     if (!driver)
-    //         throw new Unauthorized("Find not found this user!");
+        req.driver = driver;
+        req.authType = AuthType.Driver
+    }
 
-    //     req.driver = driver;
-    //     req.authType = type
-    // }
 
     private async authenticateStaff(req: Request) {
-        const type = AuthType.Staff
         const { token } = req.headers
-        const staffId = this.getAuthId(token, type);
-
-        if (!staffId)
-            throw new Unauthorized("Invalid token staff!");
-
-        const staff = await Staff.findOneOrThrowId(staffId);
+        const staffId = this.getAuthId(token, AuthType.Staff);
+        if (!staffId) throw new Unauthorized("Xác thực không hợp lệ!");
+        const staff = await Staff.findOneOrThrowId(staffId, null, 'Tài khoản');
+        if (staff.isBlock) throw new Unauthorized("Tài khoản đã bị khoá!");
 
         req.staff = staff;
-        req.authType = type
+        req.authType = AuthType.Staff
     }
 
 
     private async authenticateCustomer(req: Request) {
-        const type = AuthType.Customer
         const { token } = <{ token: string }>req.headers
-
-        const customerId = this.getAuthId(token, type);
-        if (!customerId)
-            throw new Unauthorized("Invalid token!");
-
-        const customer = await Customer.findOneOrThrowId(customerId);
+        const customerId = this.getAuthId(token, AuthType.Customer);
+        if (!customerId) throw new Unauthorized("Xác thực không hợp lệ!");
+        const customer = await Customer.findOneOrThrowId(customerId, null, 'Tài khoản');
+        if (customer.isBlock) throw new Unauthorized("Tài khoản đã bị khoá!");
 
         req.customer = customer;
-        req.authType = type
+        req.authType = AuthType.Customer
     }
 
 
@@ -92,6 +80,7 @@ export default class JWT implements AuthStrategy {
         try {
             const decoded = <JWTSignedData>jwt.verify(token, CONFIG.JWT_SECRET)
             if (decoded.id && decoded.type == type) return decoded.id
+            else return 0
         } catch (error) {
             console.log('error:', error)
             logger('error').error('Error Get Authenticate ID: ', JSON.stringify(error))
@@ -99,20 +88,21 @@ export default class JWT implements AuthStrategy {
         }
     }
 
+
     public getIa(token: string): number {
-        if (token) {
-            try {
-                const decoded = <{ id: number, type: string, ia: number }>jwt.verify(token, CONFIG.JWT_SECRET)
-                return decoded.ia
-            } catch (error) {
-                return 0
-            }
+        if (!token) return 0
+
+        try {
+            const decoded = <JWTSignedData>jwt.verify(token, CONFIG.JWT_SECRET)
+            return decoded.ia
+        } catch (error) {
+            return 0
         }
-        return 0
     }
 
 
     public sign(data: JWTSignedData): string {
+        data = { ...data, ia: getCurrentTimeInt() }
         return jwt.sign(data, CONFIG.JWT_SECRET, { expiresIn: CONFIG.JWT_EXPIRE })
     }
 
