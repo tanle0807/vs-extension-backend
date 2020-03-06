@@ -9,7 +9,7 @@ export default class CoreEntity extends BaseEntity {
     constructor() {
         super()
     }
-    
+
 
     static getRepository<T extends BaseEntity>(this: ObjectType<T>): Repository<T> {
         const connection: Connection = (this as any).usedConnection || (this as any).connection;

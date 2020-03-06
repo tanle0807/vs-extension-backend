@@ -13,7 +13,10 @@ import { PermissionImport } from '../../entity-request/PermissionImport';
 @Controller("/admin/role")
 @Docs("docs_admin")
 export class RoleController {
-    constructor(private roleService: RoleService) { }
+    constructor(
+        private roleService: RoleService
+    ) { }
+
 
     // =====================CREATE ITEM=====================
     @Post('')
@@ -25,9 +28,12 @@ export class RoleController {
     async create(
         @BodyParams("role") role: Role,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response
     ) {
         await role.save()
-        return { id: role.id }
+
+        return res.sendOK({ id: role.id })
     }
 
 
@@ -38,9 +44,11 @@ export class RoleController {
     })
     async findAll(
         @Res() res: Response,
+        @Req() req: Request,
         @HeaderParams("token") token: string,
     ) {
-        let roles = await Role.find()
+        const roles = await Role.find()
+        
         return res.sendOK(roles)
     }
 
@@ -55,10 +63,13 @@ export class RoleController {
     async importPermission(
         @BodyParams("permissions", PermissionImport) permissionImports: PermissionImport[],
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response
     ) {
-        let permissions = await this.roleService.import(permissionImports)
+        const permissions = await this.roleService.import(permissionImports)
         await this.roleService.resetRoleForAdmin(permissions)
-        return { message: "Success" }
+
+        return res.sendOK(permissions)
     }
 
 
@@ -70,9 +81,11 @@ export class RoleController {
     })
     async getAllPermission(
         @Res() res: Response,
+        @Req() req: Request,
         @HeaderParams("token") token: string,
     ) {
-        let permissions = await Permission.find()
+        const permissions = await Permission.find()
+
         return res.sendOK(permissions)
     }
 
@@ -87,11 +100,14 @@ export class RoleController {
     async getRole(
         @PathParams("roleId") roleId: number,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response
     ) {
-        let role = await Role.findOne(roleId, {
+        const role = await Role.findOne(roleId, {
             relations: ["permissions"]
         })
-        return role
+
+        return res.sendOK(role)
     }
 
 
@@ -104,18 +120,19 @@ export class RoleController {
         token: Joi.required()
     })
     async turnOnPermissionInRole(
+        @HeaderParams("token") token: string,
         @Res() res: Response,
+        @Req() req: Request,
         @PathParams("roleId") roleId: number,
         @BodyParams("permissions", Permission) permissions: Permission[],
         @BodyParams("info") role: Role,
-        @HeaderParams("token") token: string,
     ) {
-        roleId = Number(roleId)
-        let oldRole = await Role.findOneOrThrowId(roleId)
+        await Role.findOneOrThrowId(+roleId)
 
         role.id = roleId
         role.permissions = permissions
         await role.save()
+
         return res.sendOK(role)
     }
 

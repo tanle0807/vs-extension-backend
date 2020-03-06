@@ -2,7 +2,7 @@ import { ErrorRequestHandler, Response, Request } from 'express';
 
 import { Customer } from '../entity/Customer';
 import { Staff } from '../entity/Staff';
-import { Driver } from '../entity/Driver';
+// import { Driver } from '../entity/Driver';
 import { AuthType } from '../middleware/auth/strategy/JWT';
 export { }
 declare global {
@@ -20,8 +20,8 @@ declare global {
         interface Request {
             staff: Staff,
             customer: Customer,
-            driver: Driver,
-            authType: AuthType,
+            // driver: Driver,
+            authType: AuthType
         }
 
         interface Response {

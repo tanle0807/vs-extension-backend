@@ -1,4 +1,3 @@
-import { CustomerService } from './../../services/CustomerService';
 import { Controller, Post, UseAuth, Req, Request, Res, Response, HeaderParams, BodyParams, Get, PathParams, QueryParams } from '@tsed/common';
 import { Docs } from '@tsed/swagger';
 import Joi from '@hapi/joi';
@@ -7,14 +6,14 @@ import { Like, Raw } from 'typeorm';
 import { VerificationJWT } from '../../middleware/auth/VerificationJWT';
 import { Validator } from '../../middleware/validator/Validator';
 import { Customer } from '../../entity/Customer';
-import Password from '../../util/password';
+import { OrderTransport } from '../../entity/OrderTransport';
+import { Password } from '../../util/password';
 
 @Controller("/admin/customer")
 @Docs("docs_admin")
 export class CustomerController {
-    constructor(
-        private customerService: CustomerService
-    ) { }
+    constructor() { }
+
 
     // =====================GET LIST=====================
     @Get('')
@@ -41,14 +40,55 @@ export class CustomerController {
             delete where.isBlock
         }
 
-        let [customer, total] = await Customer.findAndCount({
+        const [customer, total] = await Customer.findAndCount({
             skip: (page - 1) * limit,
             take: limit,
             where,
             order: { id: "DESC" },
         })
 
-        return res.sendOK({ data: customer, total }, "Success")
+        return res.sendOK({ data: customer, total })
+    }
+
+
+    // =====================GET ORDER TRANSPORT=====================
+    @Get('/:customerId/orderTransport')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        page: Joi.number().min(0),
+        limit: Joi.number().min(0),
+        customerId: Joi.number().required(),
+    })
+    async getOrderTransport(
+        @HeaderParams("token") token: string,
+        @QueryParams("page") page: number,
+        @QueryParams("limit") limit: number,
+        @PathParams("customerId") customerId: number,
+        @QueryParams("search") search: string = "",
+        @QueryParams("status") status: string,
+        @Req() req: Request,
+        @Res() res: Response
+    ) {
+        const where = {
+            code: Raw(alias => `concat( ${alias}, " ", startAddress, " ", endAddress) LIKE "%${search}%"`),
+            customer: { id: customerId },
+            status
+        }
+
+        if (req.query.status === undefined) delete where.status
+
+        const [orders, total] = await OrderTransport.findAndCount({
+            skip: (page - 1) * limit,
+            take: limit,
+            where,
+            order: { id: "DESC" },
+            relations: ['driver', 'customer']
+        })
+
+        const totalIncome = orders.reduce((acc, order) => acc + order.moneyIncome, 0)
+        const totalRevenue = orders.reduce((acc, order) => acc + (order.moneyDistance - order.moneyIncome), 0)
+
+        return res.sendOK({ data: orders, total, totalIncome, totalRevenue })
     }
 
 
@@ -66,14 +106,12 @@ export class CustomerController {
         @BodyParams("customer") customer: Customer,
         @PathParams("customerId") customerId: number,
     ) {
-        customerId = Number(customerId)
-        // This will check and throw error if not exist 
-        await Customer.findOneOrThrowId(customerId)
+        await Customer.findOneOrThrowId(+customerId)
         customer.id = customerId
         await customer.save()
-        return { id: customer.id }
+
+        return res.sendOK(customer, 'Cập nhật thành công!')
     }
-    
 
     // =====================GET ITEM=====================
     @Get('/:customerId')
@@ -88,9 +126,9 @@ export class CustomerController {
         @PathParams("customerId") customerId: number,
 
     ) {
-        customerId = Number(customerId)
-        let customer = await Customer.findOneOrThrowId(customerId)
-        return customer
+        const customer = await Customer.findOneOrThrowId(+customerId)
+
+        return res.sendOK(customer)
     }
 
 
@@ -108,12 +146,11 @@ export class CustomerController {
         @PathParams('customerId') customerId: number,
         @BodyParams('password') password: string
     ) {
-        customerId = Number(customerId);
-        // This will check and throw error if not exist
-        const customer = await Customer.findOneOrThrowId(customerId);
+        const customer = await Customer.findOneOrThrowId(+customerId);
         customer.password = await Password.hash(password)
         await customer.save()
-        res.sendOK(customer)
+
+        return res.sendOK(customer, 'Cập nhật thành công.')
     }
 
 } // END FILE

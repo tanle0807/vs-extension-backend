@@ -4,7 +4,7 @@ import { Staff } from '../entity/Staff';
 
 export class StaffUpdate {
     toStaff(): Staff {
-        let admin = new Staff()
+        const admin = new Staff()
         admin.name = this.name
         admin.avatar = this.avatar
         admin.phone = this.phone

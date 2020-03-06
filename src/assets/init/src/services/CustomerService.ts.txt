@@ -1,34 +1,29 @@
+// IMPORT LIBRARY
 import { Service } from "@tsed/common";
 
-import { Exception } from "ts-httpexceptions";
+// IMPORT CUSTOM
+import { CoreService } from "../core/services/CoreService";
+import { BadRequest } from "ts-httpexceptions";
 import { Customer } from "../entity/Customer";
-import Password from "../util/password";
 
 @Service()
 export class CustomerService {
 
     // =====================LOGIN=====================
     public async login(phone: string, password: string): Promise<Customer> {
-        //Because select password is false for config
         const customer = await Customer.findOneOrThrowOption({
-            select: ["phone", "id", "isBlock", "password"],
-            where: { phone },
+            where: { phone }
         })
-        let validate = await Password.validate(password, customer.password)
-        if (!validate) return null
-        return customer
-    }
 
+        const isValidPass = await customer.isValidPassword(password)
+        if (!isValidPass) {
+            throw new BadRequest('Tài khoản hoặc mật khẩu không đúng! Vui lòng thử lại')
+        }
 
-    // =====================IS VALID PASSWORD=====================
-    public async isValidPassword(id: number, password: string): Promise<Customer> {
-        //because select password is false for config
-        const customer = await Customer.findOneOrThrowOption({
-            select: ["password", "id"],
-            where: { id }
-        })
-        let validate = await Password.validate(password, customer.password)
-        if (!validate) return null
+        if (customer.isBlock) {
+            throw new BadRequest('Tài khoản này đã bị khoá!')
+        }
+
         return customer
     }
 
@@ -36,6 +31,7 @@ export class CustomerService {
     // =====================CHECK DUPLICATE=====================
     async checkDuplicate(customer: Customer, userId: number = null) {
         const { phone, email } = customer
+
         const oldCustomer = await Customer.findOne({
             where: [
                 { phone },
@@ -45,10 +41,16 @@ export class CustomerService {
 
         if (oldCustomer && oldCustomer.id != userId) {
             let message = ""
-            if (oldCustomer.phone == customer.phone) message = "Số điện thoại"
-            else if (oldCustomer.email == customer.email) message = "Email"
-            throw new Exception(400, `${message} đã tồn tại`)
+
+            if (oldCustomer.phone == phone) {
+                message = "Số điện thoại"
+            } else if (oldCustomer.email == email) {
+                message = "Email"
+            }
+
+            throw new BadRequest(`${message} đã tồn tại`)
         }
     }
+
 
 } // END FILE

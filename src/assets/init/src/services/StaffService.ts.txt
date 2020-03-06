@@ -1,41 +1,29 @@
 import { Service } from "@tsed/common";
 
+import { CoreService } from "../core/services/CoreService";
 import { Staff } from "../entity/Staff";
-import { Exception } from "ts-httpexceptions";
+import { Exception, BadRequest } from "ts-httpexceptions";
 import { Permission } from "../entity/Permission";
-import Password from "../util/password";
+import { Password } from "../util/password";
 import { Role } from "../entity/Role";
 
 @Service()
-export class StaffService {
+export class StaffService extends CoreService {
 
     // =====================LOGIN=====================
     public async login(username: string, password: string): Promise<Staff> {
-        //because select password is false for config
         const staff = await Staff.findOneOrThrowOption({
-            select: ["password", "id", "isBlock"],
             where: { username },
         })
 
-        let validate = await Password.validate(password, staff.password)
-        if (!validate)
-            return null
+        const isValidPass = await staff.isValidPassword(password)
+        if (!isValidPass) {
+            throw new BadRequest('Tài khoản hoặc mật khẩu không đúng! Vui lòng thử lại')
+        }
 
-        return staff
-    }
-
-
-    // =====================IS VALID PASSWORD=====================
-    public async isValidPassword(id: number, password: string): Promise<Staff> {
-        //because select password is false for config
-        const staff = await Staff.findOneOrThrowOption({
-            select: ["password", "id"],
-            where: { id }
-        })
-
-        let validate = await Password.validate(password, staff.password)
-        if (!validate)
-            return null
+        if (staff.isBlock) {
+            throw new BadRequest('Tài khoản này đã bị khoá!')
+        }
 
         return staff
     }
@@ -54,6 +42,7 @@ export class StaffService {
     // =====================CHECK DUPLICATE=====================
     async checkDuplicate(staff: Staff, userId: number = null) {
         const { username, phone, email } = staff
+
         const oldStaff = await Staff.findOne({
             where: [
                 { username },
@@ -62,18 +51,18 @@ export class StaffService {
             ]
         })
 
-        let message = ""
         if (oldStaff && oldStaff.id != userId) {
+            let message = ""
+
             if (oldStaff.username == staff.username) {
                 message = "Tài khoản"
-            }
-            else if (oldStaff.phone == staff.phone) {
+            } else if (oldStaff.phone == staff.phone) {
                 message = "Số điện thoại"
-            }
-            else if (oldStaff.email == staff.email) {
+            } else if (oldStaff.email == staff.email) {
                 message = "Email"
             }
-            throw new Exception(400, `Trùng ${message} với nhân viên khác`)
+
+            throw new BadRequest(`Trùng ${message} với nhân viên khác`)
         }
     }
 

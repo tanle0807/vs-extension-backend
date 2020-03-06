@@ -7,11 +7,31 @@ import { Customer } from "../entity/Customer";
 export class CustomerUpdate {
     // Transform to draw entity
     toCustomer(): Customer {
-        let customer = new Customer()
+        const customer = new Customer()
+        customer.name = this.name
+        customer.phoneRelative = this.phoneRelative
         customer.email = this.email
+        customer.address = this.address
+        customer.password = this.password
+        customer.avatar = this.avatar
 
         return customer
     }
+
+    @JsonProperty()
+    name: string;
+
+    @JsonProperty()
+    avatar: string;
+
+    @JsonProperty()
+    phoneRelative: string
+
+    @JsonProperty()
+    address: string
+
+    @JsonProperty()
+    password: string
 
     @JsonProperty()
     email: string

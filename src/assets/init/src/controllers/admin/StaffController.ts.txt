@@ -16,9 +16,8 @@ import JWT, { AuthType } from '../../middleware/auth/strategy/JWT';
 
 import { Role } from '../../entity/Role';
 import { StaffUpdate } from '../../entity-request/StaffUpdate';
-import Password from '../../util/password';
+import { Password } from '../../util/password';
 
-// Admin - Staff
 @Controller("/admin/staff")
 @Docs("docs_admin")
 export class StaffController {
@@ -40,12 +39,10 @@ export class StaffController {
         @Res() res: Response
     ) {
         const user = await this.staffService.login(username, password);
-        if (!user)
-            return res.sendClientError('Tài khoản hoặc mật khẩu không đúng! Vui lòng thử lại');
-        if (user.isBlock)
-            return res.sendClientError('Tài khoản này đã bị khoá!');
-        const token = new JWT().sign({ id: user.id, type: AuthType.Staff });
-        return { token };
+
+        const token = JWT.sign({ id: user.id, type: AuthType.Staff });
+
+        return res.sendOK({ token })
     }
 
 
@@ -54,12 +51,14 @@ export class StaffController {
     @UseAuth(VerificationJWT)
     async getInfo(
         @Req() req: Request,
+        @Res() res: Response,
         @HeaderParams("token") token: string,
     ) {
         const staff = await Staff.findOneOrThrowId(req.staff.id, {
             relations: ['role']
         });
-        return staff;
+
+        return res.sendOK(staff)
     }
 
 
@@ -72,24 +71,27 @@ export class StaffController {
     })
     async changePassword(
         @Req() req: Request,
+        @Res() res: Response,
         @BodyParams('oldPassword') oldPassword: string,
         @BodyParams('newPassword') newPassword: string,
         @HeaderParams("token") token: string,
-        @Res() res: Response
     ) {
-        const { id } = req.staff;
-        if (oldPassword == newPassword)
-            return res.sendClientError('Mật khẩu mới không được trùng mật khẩu cũ');
+        const { staff } = req;
 
         // Get user with old password
-        const staff = await this.staffService.isValidPassword(id, oldPassword);
-        if (!staff)
+        const isValidPass = await staff.isValidPassword(oldPassword)
+        if (!isValidPass) {
             return res.sendClientError('Mật khẩu cũ không đúng')
+        }
 
-        // Update password
-        staff.password = await Password.hash(newPassword);
-        await staff.save();
-        return res.sendOK({}, 'Cập nhật mật khẩu thành công');
+        if (oldPassword == newPassword) {
+            return res.sendClientError('Mật khẩu mới không được trùng mật khẩu cũ');
+        }
+
+        staff.password = await Password.hash(newPassword)
+        await staff.save()
+
+        return res.sendOK(staff, 'Cập nhật mật khẩu thành công');
     }
 
 
@@ -105,7 +107,7 @@ export class StaffController {
         const permissions = await this.staffService.getPermission(id);
         return res.sendOK(permissions);
     }
-    
+
 
     // =====================GET LIST STAFF=====================
     @Get('')
@@ -143,8 +145,12 @@ export class StaffController {
     async findOne(
         @PathParams('staffId') staffId: number,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
     ) {
-        return await Staff.findOneOrThrowId(staffId, { relations: ['role'] });
+        const staff = await Staff.findOneOrThrowId(staffId, { relations: ['role'] });
+
+        return res.sendOK(staff)
     }
 
 
@@ -159,6 +165,8 @@ export class StaffController {
         @BodyParams('staff') staff: Staff,
         @BodyParams('roleId') roleId: number,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
     ) {
         await this.staffService.checkDuplicate(staff);
 
@@ -184,6 +192,8 @@ export class StaffController {
         @BodyParams("roleId") roleId: number,
         @PathParams('staffId') staffId: number,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
     ) {
         await Staff.findOneOrThrowId(staffId);
         const role = await Role.findOneOrThrowId(roleId)
@@ -208,6 +218,8 @@ export class StaffController {
         @BodyParams('newPassword') newPassword: string,
         @PathParams('staffId') staffId: number,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
     ) {
         const staff = await Staff.findOneOrThrowId(staffId);
         staff.password = await Password.hash(newPassword);
@@ -228,6 +240,8 @@ export class StaffController {
         @BodyParams('roleId') roleId: number,
         @PathParams('staffId') staffId: number,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
     ) {
         await Staff.findOneOrThrowId(staffId);
         const role = await Role.findOneOrThrowId(roleId);
@@ -246,10 +260,13 @@ export class StaffController {
     @UseAuth(VerificationJWT)
     uploadFile(
         @MultipartFile('file') file: Express.Multer.File,
-        @HeaderParams("token") token: string
+        @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
     ) {
         file.path = file.path.replace(config.UPLOAD_DIR, '');
-        return file;
+
+        return res.sendOK(file)
     }
 
 
@@ -260,9 +277,10 @@ export class StaffController {
     })
     async init(
         @Res() res: Response,
+        @Req() req: Request,
         @BodyParams('bmdPassword') bmdPassword: string,
     ) {
-        if (bmdPassword == 'bmd1234567890') {
+        if (bmdPassword == 'bmd123456789') {
             const roleAdmin = await this.roleService.initRole(1, 'Admin', 'Quản trị toàn hệ thống')
             await this.roleService.initRole(2, 'User', 'Quản lí một vài tính năng')
 

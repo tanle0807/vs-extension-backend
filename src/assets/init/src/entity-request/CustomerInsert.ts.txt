@@ -1,16 +1,33 @@
 import { JsonProperty } from "@tsed/common";
 
 import { Customer } from '../entity/Customer';
+import { Password } from "../util/password";
 
 export class CustomerInsert {
-    toCustomer(): Customer {
+    async toCustomer(): Promise<Customer> {
         const customer = new Customer()
-        customer.password = this.password
-        customer.email = this.email
         customer.phone = this.phone
+        customer.name = this.name
+        customer.phoneRelative = this.phoneRelative
+        customer.email = this.email
+        customer.address = this.address
+        customer.gender = this.gender
+        customer.password = await Password.hash(this.password)
 
         return customer
     }
+
+    @JsonProperty()
+    phone: string
+
+    @JsonProperty()
+    name: string;
+
+    @JsonProperty()
+    phoneRelative: string
+
+    @JsonProperty()
+    address: string
 
     @JsonProperty()
     password: string
@@ -19,6 +36,6 @@ export class CustomerInsert {
     email: string
 
     @JsonProperty()
-    phone: string
+    gender: string
 
 } // END FILE

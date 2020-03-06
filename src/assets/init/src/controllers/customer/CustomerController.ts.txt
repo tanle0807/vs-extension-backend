@@ -1,8 +1,9 @@
 // IMPORT LIBRARY
+import { Request } from 'express';
 import { Controller, UseAuth, Req, Get, Res, Response, HeaderParams, Post, BodyParams } from '@tsed/common';
 import Joi from '@hapi/joi';
 import { Docs } from '@tsed/swagger';
-import { Request } from 'express';
+import { MultipartFile } from '@tsed/multipartfiles';
 
 // IMPORT CUSTOM
 import { CustomerInsert } from './../../entity-request/CustomerInsert';
@@ -13,12 +14,14 @@ import { Customer } from '../../entity/Customer';
 import { CustomerService } from '../../services/CustomerService';
 import JWT, { AuthType } from '../../middleware/auth/strategy/JWT';
 import { CustomerUpdate } from '../../entity-request/CustomerUpdate';
-import Password from '../../util/password';
+import { Password } from '../../util/password';
 import { randomString, getCurrentTimeInt } from '../../util/helper';
+import CONFIG from '../../../config';
 
 @Controller("/customer/customer")
 @Docs("docs_customer")
 export class CustomerController {
+
     constructor(
         private customerService: CustomerService,
         private mailService: MailService
@@ -31,13 +34,15 @@ export class CustomerController {
         customer: Joi.required()
     })
     async register(
+        @HeaderParams("version") version: string,
+        @Res() res: Response,
+        @Req() req: Request,
         @BodyParams('customer') customer: CustomerInsert,
-        @Res() res: Response
     ) {
-        const newCustomer = customer.toCustomer()
+        const newCustomer = await customer.toCustomer()
         await this.customerService.checkDuplicate(newCustomer)
-        newCustomer.password = await Password.hash(newCustomer.password)
         await newCustomer.save()
+
         return res.sendOK(newCustomer)
     }
 
@@ -49,43 +54,50 @@ export class CustomerController {
         password: Joi.string().required()
     })
     async login(
+        @HeaderParams("version") version: string,
         @BodyParams('phone') phone: string,
         @BodyParams('password') password: string,
+        @BodyParams('expoToken') expoToken: string,
         @Res() res: Response
     ) {
-        const user = await this.customerService.login(phone, password);
-        if (!user)
-            return res.sendClientError('Tài khoản hoặc mật khẩu không đúng! Vui lòng thử lại');
-        if (user.isBlock)
-            return res.sendClientError('Tài khoản này đã bị khoá!');
-        const token = new JWT().sign({ id: user.id, type: AuthType.Customer });
-        return { token };
+        const customer = await this.customerService.login(phone, password);
+
+        customer.expoToken = expoToken
+        await customer.save()
+
+        const token = JWT.sign({ id: customer.id, type: AuthType.Customer });
+        
+        return res.sendOK({ token })
     }
 
 
-    // =====================INFO=====================
+    // =====================PROFILE=====================
     @Get('/profile')
     @UseAuth(VerificationJWT)
     async getInfo(
-        @Req() req: Request,
+        @HeaderParams("version") version: string,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
     ) {
-        return await Customer.findOneOrThrowId(req.customer.id);
+        return res.sendOK(req.customer)
     }
 
 
-    // =====================UPDATE INFO=====================
+    // =====================UPDATE PROFILE=====================
     @Post('/profile')
     @UseAuth(VerificationJWT)
     async updateInfo(
-        @BodyParams("customer") customer: CustomerUpdate,
+        @HeaderParams("token") token: string,
+        @HeaderParams("version") version: string,
         @Req() req: Request,
         @Res() res: Response,
-        @HeaderParams("token") token: string,
+        @BodyParams("customer") customer: CustomerUpdate,
     ) {
         const modifiedCustomer = customer.toCustomer()
         modifiedCustomer.id = req.customer.id
         await modifiedCustomer.save()
+
         return res.sendOK(modifiedCustomer)
     }
 
@@ -98,27 +110,31 @@ export class CustomerController {
         newPassword: Joi.string().required()
     })
     async changePassword(
-        @Req() req: Request,
+        @HeaderParams("version") version: string,
         @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
         @BodyParams('oldPassword') oldPassword: string,
         @BodyParams('newPassword') newPassword: string,
-        @Res() res: Response
     ) {
-        const { id } = req.customer;
-        if (oldPassword == newPassword)
-            return res.sendClientError('Mật khẩu mới không được trùng mật khẩu cũ');
+        const { customer } = req;
 
-        // Get user with old password
-        const customer = await this.customerService.isValidPassword(id, oldPassword);
-        if (!customer)
+        const isValidPass = await customer.isValidPassword(oldPassword)
+        if (!isValidPass) {
             return res.sendClientError('Mật khẩu cũ không đúng')
+        }
+
+        if (oldPassword == newPassword) {
+            return res.sendClientError('Mật khẩu mới không được trùng mật khẩu cũ')
+        }
 
         // Update password
         customer.password = await Password.hash(newPassword);
         await customer.save();
+
         return res.sendOK({}, 'Cập nhật mật khẩu thành công');
     }
-    
+
 
     // =====================FORGOT=====================
     @Post('/password/forgot')
@@ -126,17 +142,19 @@ export class CustomerController {
         email: Joi.required(),
     })
     async forgot(
+        @HeaderParams("version") version: string,
+        @BodyParams("email") email: string,
         @Req() req: Request,
         @Res() res: Response,
-        @BodyParams("email") email: string,
     ) {
         const customer = await Customer.findOne({ where: { email } })
         if (!customer) {
             return res.sendClientError('Email không tồn tại')
         }
-        const jwt = new JWT()
-        const token = jwt.sign({ id: customer.id, type: AuthType.Customer, ia: getCurrentTimeInt() })
+
+        const token = JWT.sign({ id: customer.id, type: AuthType.Customer, ia: getCurrentTimeInt() })
         this.mailService.sendMailLinkReset(token, customer)
+
         return res.sendOK({}, 'Vui lòng kiểm tra email và truy cập vào đường link xác nhận.')
     }
 
@@ -147,28 +165,44 @@ export class CustomerController {
         token: Joi.required(),
     })
     async reForgot(
+        @HeaderParams("version") version: string,
+        @BodyParams("token") token: string,
         @Req() req: Request,
         @Res() res: Response,
-        @BodyParams("token") token: string
     ) {
-        const jwt = new JWT()
-        const customerId = jwt.getAuthId(token, AuthType.Customer)
+        const customerId = new JWT().getAuthId(token, AuthType.Customer)
 
         const customer = await Customer.findOne({ where: { id: customerId } })
-        if (!customer) return res.sendClientError("Tài khoản không tồn tại")
+        if (!customer) {
+            return res.sendClientError("Tài khoản không tồn tại")
+        }
 
-        const ia = jwt.getIa(token)
-        if (ia < customer.dateUpdated)
+        const ia = JWT.getIa(token)
+        if (ia < customer.dateUpdated) {
             return res.sendClientError("Yêu cầu đã hết hạn. Vui lòng gửi yêu cầu khác.")
+        }
 
         const newPassword = randomString(6)
-        const hashed = await Password.hash(newPassword)
-        customer.password = hashed
+        customer.password = await Password.hash(newPassword)
         await customer.save()
 
         this.mailService.sendMailReset(newPassword, customer)
-        return customer
+
+        return res.sendOK(customer)
     }
 
+
+    // =====================UPLOAD IMAGE=====================
+    @Post('/upload')
+    @UseAuth(VerificationJWT)
+    uploadFile(
+        @HeaderParams("version") version: string,
+        @HeaderParams('token') token: string,
+        @Res() res: Response,
+        @MultipartFile('file') file: Express.Multer.File,
+    ) {
+        file.path = file.path.replace(CONFIG.UPLOAD_DIR, '');
+        return res.sendOK(file)
+    }
 
 } // END FILE

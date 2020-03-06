@@ -6,6 +6,9 @@ import { JsonProperty } from "@tsed/common";
 import { addPrefix } from "../util/helper"
 import CoreEntity from '../core/entity/CoreEntity';
 import { Role } from "./Role";
+import { Withdraw } from "./Withdraw";
+import { Deposit } from "./Deposit";
+import { Password } from "../util/password";
 
 @Entity(addPrefix("staff"))
 export class Staff extends CoreEntity {
@@ -47,6 +50,17 @@ export class Staff extends CoreEntity {
     @ManyToOne(type => Role, role => role.staff)
     role: Role;
 
+    @OneToMany(type => Deposit, deposit => deposit.creator)
+    deposits: Deposit[];
+
+    @OneToMany(type => Deposit, deposit => deposit.creator)
+    withdraws: Withdraw[];
+
     // COMPUTES
+    
+    async isValidPassword(password: string): Promise<boolean> {
+        const validate = await Password.validate(password, this.password)
+        return validate
+    }
 
 } // END FILE

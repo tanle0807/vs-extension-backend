@@ -1,12 +1,18 @@
 // IMPORT LIBRARY
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from "typeorm";
 import { JsonProperty } from "@tsed/common";
-import md5 from "md5";
-import moment from "moment";
 
 // IMPORT CUSTOM
 import { addPrefix } from "../util/helper"
 import CoreEntity from '../core/entity/CoreEntity';
+import { OrderTransport } from "./OrderTransport";
+import { Notification } from "./Notification";
+import { Password } from "../util/password";
+
+export enum GenderType {
+    Male = 'MALE',
+    Female = 'FEMALE'
+}
 
 @Entity(addPrefix("customer"))
 export class Customer extends CoreEntity {
@@ -17,30 +23,60 @@ export class Customer extends CoreEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ select: false })
-    password: string;
+    @Column()
+    @JsonProperty()
+    phone: string
 
     @Column()
     @JsonProperty()
-    username: string;
+    name: string;
 
     @Column({ default: '' })
+    @JsonProperty()
+    phoneRelative: string
+
+    @Column({ default: '' })
+    @JsonProperty()
+    address: string
+
+    @Column()
+    @JsonProperty()
+    password: string
+
+    @Column()
     @JsonProperty()
     email: string
 
-    @Column({ default: '' })
+    @Column({ default: GenderType.Male })
     @JsonProperty()
-    phone: string
+    gender: string
+
+    @Column({ nullable: true })
+    @JsonProperty()
+    avatar: string;
+
+    @Column({ nullable: true })
+    @JsonProperty()
+    expoToken: string;
 
     @Column({ default: false })
     @JsonProperty()
     isBlock: boolean
 
-
     // RELATIONS
+
+    @OneToMany(type => Notification, notifications => notifications.customer)
+    notifications: Notification[];
+
+    @OneToMany(type => OrderTransport, orderTransport => orderTransport.customer)
+    orderTransports: OrderTransport[];
 
 
     // COMPUTES
 
+    async isValidPassword(password: string): Promise<boolean> {
+        const validate = await Password.validate(password, this.password)
+        return validate
+    }
 
 } // END FILE
