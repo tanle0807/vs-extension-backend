@@ -7,11 +7,12 @@ import { BadRequest } from "ts-httpexceptions";
 import { Customer } from "../entity/Customer";
 
 @Service()
-export class CustomerService {
+export class CustomerService extends CoreService {
 
     // =====================LOGIN=====================
     public async login(phone: string, password: string): Promise<Customer> {
         const customer = await Customer.findOneOrThrowOption({
+            select: ['password'],
             where: { phone }
         })
 
