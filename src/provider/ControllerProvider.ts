@@ -60,8 +60,6 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         return line.text.includes('Controller') && line.text.includes('class')
     }
 
-
-
     private createControllerFunc(document: vscode.TextDocument, range: vscode.Range, typeFunc: ControllerAction): vscode.CodeAction {
         const controller = new vscode.CodeAction(typeFunc, vscode.CodeActionKind.QuickFix);
         switch (typeFunc) {
@@ -361,11 +359,14 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         @Post('/upload')
         @UseAuth(VerificationJWT)
         uploadFile(
+            @HeaderParams("token") token: string,
             @MultipartFile('file') file: Express.Multer.File,
-            @HeaderParams('token') token: string
+            @Req() req: Request,
+            @Res() res: Response,
         ) {
-            file.path = file.path.replace(CONFIG.UPLOAD_DIR, '');
-            return file;
+            file.path = file.path.replace(config.UPLOAD_DIR, '');
+    
+            return res.sendOK(file)
         }
         `
         return template
