@@ -4,6 +4,14 @@ export function replaceSymbolTemplate(content: string) {
     return content
 }
 
+export function toLowerCaseFirstLetter(name: string) {
+    return name.charAt(0).toLowerCase() + name.slice(1)
+}
+
+export function toUpperCaseFirstLetter(name: string) {
+    return name.charAt(0).toUpperCase() + name.slice(1)
+}
+
 interface TextType {
     lowerCase: string,
     upperCase: string,

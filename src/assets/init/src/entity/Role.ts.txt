@@ -12,9 +12,7 @@ export class Role extends CoreEntity {
         super()
     }
 
-    @PrimaryGeneratedColumn()
-    @JsonProperty()
-    id: number;
+    // PROPERTIES
 
     @Column()
     @JsonProperty()
@@ -24,13 +22,15 @@ export class Role extends CoreEntity {
     @JsonProperty()
     description: string
 
+
     // RELATIONS
+    
     @OneToMany(() => Staff, admin => admin.role)
     staff: Staff[]
 
     @ManyToMany(() => Permission, permission => permission.roles)
     permissions: Permission[]
 
-    // COMPUTES
+    // METHODS
 
 } // END FILE

@@ -8,11 +8,10 @@ export class {{classifyRaw}} {
     // Transform to draw entity
     to{{classify}}(): {{classify}} {
         let {{camel}} = new {{classify}}()
-        {{camel}}.prop = this.prop
+
         return {{camel}}
     }
 
-    @JsonProperty()
-    prop: string
-    
+    // PROPERTIES
+
 } // END FILE

@@ -52,9 +52,9 @@ export class {{classify}}Controller {
         {{camel}}Id: Joi.number().required(),
     })
     async findOne(
+        @HeaderParams("token") token: string,
         @Req() req: Request,
         @Res() res: Response,
-        @HeaderParams("token") token: string,
         @PathParams("{{camel}}Id"){{camel}}Id: number,
     ) {
         const {{camel}} = await {{classify}}.findOneOrThrowId({{camel}}Id)
@@ -69,9 +69,9 @@ export class {{classify}}Controller {
         {{camel}}: Joi.required(),
     })
     async create(
+        @HeaderParams("token") token: string,
         @Req() req: Request,
         @Res() res: Response,
-        @HeaderParams("token") token: string,
         @BodyParams("{{camel}}") {{camel}}: {{classify}},
     ) {
         await {{camel}}.save()
@@ -87,9 +87,9 @@ export class {{classify}}Controller {
         {{camel}}Id: Joi.number().required()
     })
     async update(
+        @HeaderParams("token") token: string,
         @Req() req: Request,
         @Res() res: Response,
-        @HeaderParams("token") token: string,
         @BodyParams("{{camel}}") {{camel}}: {{classify}},
         @PathParams("{{camel}}Id") {{camel}}Id: number,
     ) {

@@ -10,20 +10,20 @@ export class Permission extends CoreEntity {
     constructor() {
         super()
     }
-
-    @PrimaryGeneratedColumn()
-    @JsonProperty()
-    id: number;
+    
+    // PROPERTIES
 
     @Column()
     @JsonProperty()
     path: string;
 
+
     // RELATIONS
+
     @ManyToMany(type => Role, role => role.permissions)
     @JoinTable()
     roles: Role[]
 
-    // COMPUTES
+    // METHODS
 
 } // END FILE

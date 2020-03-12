@@ -1,4 +1,3 @@
-import { FSProvider } from '../fsProvider';
 import * as vscode from 'vscode';
 import { getFullTextType } from '../util';
 
@@ -59,6 +58,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         const line = document.lineAt(start.line);
         return line.text.includes('Controller') && line.text.includes('class')
     }
+
 
     private createControllerFunc(document: vscode.TextDocument, range: vscode.Range, typeFunc: ControllerAction): vscode.CodeAction {
         const controller = new vscode.CodeAction(typeFunc, vscode.CodeActionKind.QuickFix);
@@ -135,8 +135,6 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
     }
 
     public insertControllerFunc(typeFunc: ControllerAction, document: any): void {
-        // const documents = vscode.workspace.textDocuments
-        // const document = documents[0]
         const edit = new vscode.WorkspaceEdit();
         let entity = 'Entity'
         for (let index = 0; index < document.lineCount; index++) {
@@ -199,11 +197,11 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         })
         async findAll(
             @HeaderParams('token') token: string,
+            @Req() req: Request,
+            @Res() res: Response
             @QueryParams('page') page: number,
             @QueryParams('limit') limit: number,
             @QueryParams('search') search: string = '',
-            @Req() req: Request,
-            @Res() res: Response
         ) {
             const [{{camel}}s, total] = await {{cap}}.findAndCount({
                 skip: (page - 1) * limit,
@@ -261,9 +259,9 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
             {{camel}}: Joi.required()
         })
         async create(
+            @HeaderParams('token') token: string,
             @Req() req: Request,
             @Res() res: Response,
-            @HeaderParams('token') token: string,
             @BodyParams('{{camel}}') {{camel}}: {{cap}}
         ) {
             await {{camel}}.save();
@@ -286,9 +284,9 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 {{camel}}: Joi.required()
             })
             async create(
+                @HeaderParams('token') token: string,
                 @Req() req: Request,
                 @Res() res: Response,
-                @HeaderParams('token') token: string,
                 @BodyParams('{{camel}}') {{camel}}: {{cap}}Insert
             ) {
                 const new{{cap}} = {{camel}}.to{{cap}}();
@@ -311,9 +309,9 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         @Validator({
         })
         async delete(
+            @HeaderParams("token") token: string,
             @Req() req: Request,
             @Res() res: Response,
-            @HeaderParams("token") token: string,
             @PathParams("{{camel}}Id") {{camel}}Id: number,
         ) {
             let {{camel}} = await {{cap}}.findOneOrThrowId({{camel}}Id)
@@ -336,9 +334,9 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         @Validator({
         })
         async delete(
+            @HeaderParams("token") token: string,
             @Req() req: Request,
             @Res() res: Response,
-            @HeaderParams("token") token: string,
             @PathParams("{{camel}}Id") {{camel}}Id: number,
         ) {
             let {{camel}} = await {{cap}}.findOneOrThrowId({{camel}}Id)
@@ -360,9 +358,9 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         @UseAuth(VerificationJWT)
         uploadFile(
             @HeaderParams("token") token: string,
-            @MultipartFile('file') file: Express.Multer.File,
             @Req() req: Request,
             @Res() res: Response,
+            @MultipartFile('file') file: Express.Multer.File,
         ) {
             file.path = file.path.replace(config.UPLOAD_DIR, '');
     

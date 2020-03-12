@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { getFullTextType } from '../util';
 
 export enum EntityAction {
-    AddProperty = 'BMD: Add property',
+    AddProperty = 'BMD: Add property entity',
     OneToMany = 'BMD: OneToMany with ',
     ManyToOne = 'BMD: ManyToOne with ',
     ManyToMany = 'BMD: ManyToMany with ',
@@ -32,27 +32,43 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         context: vscode.CodeActionContext
     ): vscode.CodeAction[] | undefined {
 
-        if (!this.isEntityClass(document, range)) return
+        if (this.isEntityProperties(document, range)) {
+            const addProperty = this.createEntityFunc(document, range, EntityAction.AddProperty);
 
-        const insertOneToMany = this.createEntityFunc(document, range, EntityAction.OneToMany);
-        const insertManyToOne = this.createEntityFunc(document, range, EntityAction.ManyToOne);
-        const insertManyToMany = this.createEntityFunc(document, range, EntityAction.ManyToMany);
-        const addProperty = this.createEntityFunc(document, range, EntityAction.AddProperty);
+            vscode.commands.executeCommand('editor.action.formatDocument')
 
-        vscode.commands.executeCommand('editor.action.formatDocument')
+            return [
+                addProperty
+            ];
+        }
 
-        return [
-            addProperty,
-            insertOneToMany,
-            insertManyToOne,
-            insertManyToMany
-        ];
+        if (this.isEntityRelations(document, range)) {
+            const insertOneToMany = this.createEntityFunc(document, range, EntityAction.OneToMany);
+            const insertManyToOne = this.createEntityFunc(document, range, EntityAction.ManyToOne);
+            const insertManyToMany = this.createEntityFunc(document, range, EntityAction.ManyToMany);
+
+            vscode.commands.executeCommand('editor.action.formatDocument')
+
+            return [
+                insertOneToMany,
+                insertManyToOne,
+                insertManyToMany
+            ];
+        }
+
+
     }
 
-    private isEntityClass(document: vscode.TextDocument, range: vscode.Range) {
+    private isEntityProperties(document: vscode.TextDocument, range: vscode.Range) {
         const start = range.start;
         const line = document.lineAt(start.line);
-        return line.text.includes('CoreEntity') && line.text.includes('class')
+        return line.text.includes('PROPERTIES') && document.fileName.includes('entity/')
+    }
+
+    private isEntityRelations(document: vscode.TextDocument, range: vscode.Range) {
+        const start = range.start;
+        const line = document.lineAt(start.line);
+        return line.text.includes('RELATIONS')
     }
 
 
@@ -120,7 +136,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         for (let index = 0; index < document.lineCount; index++) {
             const line = document.lineAt(index)
 
-            if (line.text.includes('RELATIONS')) {
+            if (line.text.includes('PROPERTIES')) {
                 switch (type) {
                     case PropertyType.String:
                     case PropertyType.Number:
@@ -129,11 +145,11 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                     case PropertyType.Text:
                         template = await this.generateProperty(type)
                         if (!template) return
-                        edit.insert(document.uri, new vscode.Position(index - 1, 0), template);
+                        edit.insert(document.uri, new vscode.Position(index + 1, 0), template);
                         break
 
                     case PropertyType.BalanceColumn:
-                        edit.insert(document.uri, new vscode.Position(index - 1, 0), `
+                        edit.insert(document.uri, new vscode.Position(index + 1, 0), `
                         @Column({ default: 0, width: 20 })
                         @JsonProperty()
                         balance: number;
@@ -141,7 +157,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                         break
 
                     case PropertyType.IsBlockColumn:
-                        edit.insert(document.uri, new vscode.Position(index - 1, 0), `
+                        edit.insert(document.uri, new vscode.Position(index + 1, 0), `
                         @Column({ default: false })
                         @JsonProperty()
                         isBlock: boolean
@@ -149,7 +165,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                         break
 
                     case PropertyType.IsShowColumn:
-                        edit.insert(document.uri, new vscode.Position(index - 1, 0), `
+                        edit.insert(document.uri, new vscode.Position(index + 1, 0), `
                         @Column({ default: true })
                         @JsonProperty()
                         isShow: boolean
@@ -172,7 +188,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         switch (propertyType) {
             case PropertyType.String:
                 return `
-                @Column({ default: "" })
+                @Column({ default: '' })
                 @JsonProperty()
                 ${fullTextType.camelCase}: string
                 `

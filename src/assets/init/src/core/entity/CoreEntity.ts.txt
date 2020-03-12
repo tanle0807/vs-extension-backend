@@ -1,7 +1,7 @@
-import { Column, BaseEntity, ObjectType, ObjectID, FindOneOptions, FindConditions, Repository, Connection } from "typeorm";
-import { getCurrentTimeInt } from "../../util/helper"
-import { Exception } from "ts-httpexceptions";
+import { Column, BaseEntity, ObjectType, ObjectID, FindOneOptions, FindConditions, Repository, Connection, PrimaryGeneratedColumn } from "typeorm";
+import { BadRequest } from "ts-httpexceptions";
 
+import { getCurrentTimeInt } from "../../util/helper"
 
 export default class CoreEntity extends BaseEntity {
     public static connection: Connection;
@@ -10,6 +10,20 @@ export default class CoreEntity extends BaseEntity {
         super()
     }
 
+
+    // PROPERTIES
+
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column()
+    dateCreated: number;
+
+    @Column()
+    dateUpdated: number;
+
+
+    // METHODS
 
     static getRepository<T extends BaseEntity>(this: ObjectType<T>): Repository<T> {
         const connection: Connection = (this as any).usedConnection || (this as any).connection;
@@ -35,7 +49,7 @@ export default class CoreEntity extends BaseEntity {
             return await super.findOneOrFail<T>(id, options)
         } catch (error) {
             console.log(error);
-            throw new Exception(400, `${replaceName ? replaceName : this.name} không tồn tại.`)
+            throw new BadRequest(`${replaceName ? replaceName : this.name} không tồn tại.`)
         }
     }
 
@@ -49,29 +63,8 @@ export default class CoreEntity extends BaseEntity {
             return await super.findOneOrFail<T>(options)
         } catch (error) {
             console.log(error);
-            throw new Exception(400, `${replaceName ? replaceName : this.name} không tồn tại.`)
+            throw new BadRequest(`${replaceName ? replaceName : this.name} không tồn tại.`)
         }
     }
-
-
-    static async findOneOrThrowCondition<T extends BaseEntity>(
-        this: ObjectType<T>,
-        conditions?: FindConditions<T>,
-        options?: FindOneOptions<T>,
-        replaceName?: string
-    ): Promise<T> {
-        try {
-            return await super.findOneOrFail<T>(conditions, options)
-        } catch (error) {
-            console.log(error);
-            throw new Exception(400, `${replaceName ? replaceName : this.name} không tồn tại.`)
-        }
-    }
-
-    @Column()
-    dateCreated: number;
-
-    @Column()
-    dateUpdated: number;
 
 } // END FILE

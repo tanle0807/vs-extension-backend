@@ -5,8 +5,6 @@ import { JsonProperty } from "@tsed/common";
 // IMPORT CUSTOM
 import { addPrefix } from "../util/helper"
 import CoreEntity from '../core/entity/CoreEntity';
-import { OrderTransport } from "./OrderTransport";
-import { Notification } from "./Notification";
 import { Password } from "../util/password";
 
 export enum GenderType {
@@ -20,8 +18,7 @@ export class Customer extends CoreEntity {
         super()
     }
 
-    @PrimaryGeneratedColumn()
-    id: number;
+    // PROPERTIES
 
     @Column()
     @JsonProperty()
@@ -62,17 +59,12 @@ export class Customer extends CoreEntity {
     @Column({ default: false })
     @JsonProperty()
     isBlock: boolean
+    
 
     // RELATIONS
 
-    @OneToMany(type => Notification, notifications => notifications.customer)
-    notifications: Notification[];
 
-    @OneToMany(type => OrderTransport, orderTransport => orderTransport.customer)
-    orderTransports: OrderTransport[];
-
-
-    // COMPUTES
+    // METHODS
 
     async isValidPassword(password: string): Promise<boolean> {
         const validate = await Password.validate(password, this.password)

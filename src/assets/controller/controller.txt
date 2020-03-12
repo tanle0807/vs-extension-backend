@@ -22,9 +22,9 @@ export class {{classify}}Controller {
     @UseAuth(VerificationJWT)
     @Validator({})
     async index(
+        @HeaderParams("token") token: string,
         @Req() req: Request,
         @Res() res: Response,
-        @HeaderParams("token") token: string,
     ) {
 
     }

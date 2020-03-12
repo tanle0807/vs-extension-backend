@@ -4,6 +4,7 @@ import Handler from './Handler';
 import { ControllerActionProvider, ControllerAction } from './provider/ControllerProvider';
 import { ServiceActionProvider, ServiceAction } from './provider/ServiceProvider';
 import { EntityActionProvider, EntityAction } from './provider/EntityProvider';
+import { EntityRequestActionProvider, EntityRequestAction } from './provider/EntityRequestProvider';
 
 
 enum ConfirmationExistProject {
@@ -25,6 +26,7 @@ export enum BMDCommand {
 const controllerProvider = new ControllerActionProvider()
 const serviceProvider = new ServiceActionProvider()
 const entityProvider = new EntityActionProvider()
+const entityRequestProvider = new EntityRequestActionProvider()
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -154,6 +156,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.ManyToMany, async (e) => {
 		entityProvider.insertEntityFunc(EntityAction.ManyToMany, e)
+	}));
+
+	// Use for entity request action
+
+	context.subscriptions.push(
+		vscode.languages.registerCodeActionsProvider('typescript', new EntityRequestActionProvider(), {
+			providedCodeActionKinds: EntityRequestActionProvider.providedCodeActionKinds
+		})
+	);
+
+	context.subscriptions.push(vscode.commands.registerCommand(EntityRequestAction.AddProperty, async (e) => {
+		entityRequestProvider.addProperty(e)
 	}));
 
 

@@ -17,9 +17,7 @@ export class ContentDefine extends CoreEntity {
         super()
     }
 
-    @PrimaryGeneratedColumn()
-    @JsonProperty()
-    id: number;
+    // PROPERTIES
 
     @Column()
     @JsonProperty()
@@ -36,4 +34,12 @@ export class ContentDefine extends CoreEntity {
     @Column()
     @JsonProperty()
     type: string;
+
+
+    // RELATIONS
+
+
+    // METHODS
+
+    
 }

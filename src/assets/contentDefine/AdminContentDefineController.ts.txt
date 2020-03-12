@@ -57,10 +57,11 @@ export class ContentDefineController {
         contentDefine: Joi.required(),
     })
     async update(
-        @BodyParams("contentDefine") contentDefine: ContentDefine,
-        @PathParams("contentDefineId") contentDefineId: number,
+        @HeaderParams('token') token: string,
         @Res() res: Response,
         @Req() req: Request,
+        @BodyParams("contentDefine") contentDefine: ContentDefine,
+        @PathParams("contentDefineId") contentDefineId: number,
     ) {
         contentDefineId = Number(contentDefineId)
         await ContentDefine.findOneOrThrowId(contentDefineId)
@@ -94,13 +95,13 @@ export class ContentDefineController {
     @Post('/upload')
     @UseAuth(VerificationJWT)
     uploadFile(
-        @MultipartFile('file') file: Express.Multer.File,
         @HeaderParams('token') token: string,
         @Res() res: Response,
         @Req() req: Request,
+        @MultipartFile('file') file: Express.Multer.File,
     ) {
         file.path = file.path.replace(CONFIG.UPLOAD_DIR, '');
-        return file;
+        return res.sendOK(file);
     }
 
 } // END FILE

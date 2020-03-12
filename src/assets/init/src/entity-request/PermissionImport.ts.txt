@@ -1,6 +1,8 @@
 import { JsonProperty } from "@tsed/common";
 
 export class PermissionImport {
+    // PROPERTIES
+
     @JsonProperty()
     path: string;
 

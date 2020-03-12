@@ -13,8 +13,7 @@ export class Configuration extends CoreEntity {
         super()
     }
 
-    @PrimaryGeneratedColumn()
-    id: number;
+    // PROPERTIES
 
     @Column()
     @JsonProperty()
@@ -27,5 +26,12 @@ export class Configuration extends CoreEntity {
     @Column({ default: '' })
     @JsonProperty()
     note: string
+
+
+    // RELATIONS
+
+
+    // METHODS
+
 
 }

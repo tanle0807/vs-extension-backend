@@ -10,17 +10,13 @@ export class {{classify}} extends CoreEntity {
         super()
     }
 
-    @PrimaryGeneratedColumn()
-    @JsonProperty()
-    id: number;
+    // PROPERTIES
 
-    @Column()
-    @JsonProperty()
-    column: string;
 
     // RELATIONS
 
 
-    // COMPUTES
+    // METHODS
+    
 
 } // END FILE

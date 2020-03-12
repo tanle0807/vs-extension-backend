@@ -1,10 +1,15 @@
 import { FSProvider } from "./FsProvider"
 import * as vscode from 'vscode';
-import { getFullTextType, getLastFolderFromPath, words, toSnakeCase } from "./util";
+import { getFullTextType, getLastFolderFromPath, words, toSnakeCase, toUpperCaseFirstLetter } from "./util";
 
 enum Confirmation {
     Yes = 'YES',
     No = 'NO'
+}
+
+enum TypeRequest {
+    Insert = 'Insert',
+    Update = 'Update'
 }
 
 export default class Handler {
@@ -190,7 +195,7 @@ export default class Handler {
     }
 
     static async createEntity(fsPath: string) {
-        if (!fsPath.includes('entity'))
+        if (!fsPath.endsWith('entity'))
             return vscode.window.showErrorMessage("Please select 'entity' folder")
 
         let entity = await vscode.window.showInputBox({ placeHolder: "Enter entity name: " })
@@ -217,20 +222,17 @@ export default class Handler {
     }
 
     static async createEntityRequest(fsPath: string) {
-        if (!fsPath.includes('entity-request'))
+        if (!fsPath.endsWith('entity-request'))
             return vscode.window.showErrorMessage("Please select 'entity-request' folder")
 
-        let entityRequest = await vscode.window.showInputBox({ placeHolder: "Enter entity request name: " })
-        const pieces = words(toSnakeCase(entityRequest))
-        pieces.pop()
-        if (!pieces.length)
-            return vscode.window.showErrorMessage("Please input the name different with entity!")
-        pieces.forEach(piece => piece = piece.toUpperCase())
+        const entities = FSProvider.getAllFileInFolder('/src/entity')
+        const entity = await vscode.window.showQuickPick([...entities])
+        if (!entity) return vscode.window.showInformationMessage('Please select entity to complete action')
 
-        const entity = pieces.join('')
+        const type = await vscode.window.showQuickPick([TypeRequest.Insert, TypeRequest.Update])
+        if (!type) return vscode.window.showInformationMessage('Please select type to complete action')
 
-        if (!entityRequest) return
-        const entityRequestTextTypes = getFullTextType(entityRequest)
+        const entityRequestTextTypes = getFullTextType(entity + type)
         const entityTextTypes = getFullTextType(entity)
 
         const distPath = `src/entity-request/${entityRequestTextTypes.classifyCase}.ts`
