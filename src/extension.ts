@@ -3,7 +3,7 @@ import { FSProvider } from './FsProvider';
 import Handler from './Handler';
 import { ControllerActionProvider, ControllerAction } from './provider/ControllerProvider';
 import { ServiceActionProvider, ServiceAction } from './provider/ServiceProvider';
-import { EntityActionProvider, EntityAction } from './provider/EntityProvider';
+import { EntityActionProvider, EntityAction, EntityFunctionAction } from './provider/EntityProvider';
 import { EntityRequestActionProvider, EntityRequestAction } from './provider/EntityRequestProvider';
 
 
@@ -147,15 +147,19 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.OneToMany, async (e) => {
-		entityProvider.insertEntityFunc(EntityAction.OneToMany, e)
+		entityProvider.insertEntityAction(EntityAction.OneToMany, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.ManyToOne, async (e) => {
-		entityProvider.insertEntityFunc(EntityAction.ManyToOne, e)
+		entityProvider.insertEntityAction(EntityAction.ManyToOne, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.ManyToMany, async (e) => {
-		entityProvider.insertEntityFunc(EntityAction.ManyToMany, e)
+		entityProvider.insertEntityAction(EntityAction.ManyToMany, e)
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand(EntityFunctionAction.AddRelation, async (e, r) => {
+		entityProvider.insertEntityFunction(EntityFunctionAction.AddRelation, e, r)
 	}));
 
 	// Use for entity request action

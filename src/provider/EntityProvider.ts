@@ -6,7 +6,11 @@ export enum EntityAction {
     AddProperty = 'BMD: Add property entity',
     OneToMany = 'BMD: OneToMany with ',
     ManyToOne = 'BMD: ManyToOne with ',
-    ManyToMany = 'BMD: ManyToMany with ',
+    ManyToMany = 'BMD: ManyToMany with '
+}
+
+export enum EntityFunctionAction {
+    AddRelation = 'BMD: add relation',
 }
 
 enum PropertyType {
@@ -33,7 +37,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
     ): vscode.CodeAction[] | undefined {
 
         if (this.isEntityProperties(document, range)) {
-            const addProperty = this.createEntityFunc(document, range, EntityAction.AddProperty);
+            const addProperty = this.createEntityAction(document, range, EntityAction.AddProperty);
 
             vscode.commands.executeCommand('editor.action.formatDocument')
 
@@ -43,9 +47,9 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         }
 
         if (this.isEntityRelations(document, range)) {
-            const insertOneToMany = this.createEntityFunc(document, range, EntityAction.OneToMany);
-            const insertManyToOne = this.createEntityFunc(document, range, EntityAction.ManyToOne);
-            const insertManyToMany = this.createEntityFunc(document, range, EntityAction.ManyToMany);
+            const insertOneToMany = this.createEntityAction(document, range, EntityAction.OneToMany);
+            const insertManyToOne = this.createEntityAction(document, range, EntityAction.ManyToOne);
+            const insertManyToMany = this.createEntityAction(document, range, EntityAction.ManyToMany);
 
             vscode.commands.executeCommand('editor.action.formatDocument')
 
@@ -56,7 +60,14 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             ];
         }
 
+        if (this.isEntityFunction(document, range)) {
+            const insertRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddRelation);
+            vscode.commands.executeCommand('editor.action.formatDocument')
 
+            return [
+                insertRelation
+            ];
+        }
     }
 
     private isEntityProperties(document: vscode.TextDocument, range: vscode.Range) {
@@ -71,8 +82,14 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         return line.text.includes('RELATIONS')
     }
 
+    private isEntityFunction(document: vscode.TextDocument, range: vscode.Range) {
+        const start = range.start;
+        const line = document.lineAt(start.line);
+        return line.text.includes('find')
+    }
 
-    private createEntityFunc(document: vscode.TextDocument, range: vscode.Range, typeFunc: EntityAction): vscode.CodeAction {
+
+    private createEntityAction(document: vscode.TextDocument, range: vscode.Range, typeFunc: EntityAction): vscode.CodeAction {
         const entity = new vscode.CodeAction(typeFunc, vscode.CodeActionKind.QuickFix);
         switch (typeFunc) {
             case EntityAction.AddProperty:
@@ -226,7 +243,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         }
     }
 
-    public async insertEntityFunc(typeFunc: EntityAction, document: vscode.TextDocument): Promise<void> {
+    public async insertEntityAction(typeFunc: EntityAction, document: vscode.TextDocument): Promise<void> {
         const edit = new vscode.WorkspaceEdit();
         let entity = 'Entity'
         let template = ''
@@ -310,6 +327,182 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         injectString1 = injectString1.replace(/{{cap2}}/g, nameTextTypes2.classifyCase);
 
         return injectString1
+    }
+
+    public async insertEntityFunction(typeFunc: EntityFunctionAction, document: vscode.TextDocument, range: vscode.Range) {
+        const edit = new vscode.WorkspaceEdit();
+
+        if (typeFunc == EntityFunctionAction.AddRelation) {
+            const entity = this.getEntityFromFunction(document, range)
+            if (!entity) return vscode.window.showInformationMessage('Can not get entity')
+
+            const relations = this.getRelationsEntity(entity)
+            if (!relations.length) return vscode.window.showInformationMessage('Not exist any relation')
+
+            const { allLine, mapLines } = this.getAllFunctionLine(document, range)
+
+            if (allLine.includes('relations')) {
+                const relationSelected = this.getRelationSelected(mapLines)
+                const relationNotSelected = relations.filter((item: string) => {
+                    if (!relationSelected.includes(item)) return item
+                })
+
+                if (!relationNotSelected.length) return vscode.window.showInformationMessage('All relation was selected')
+
+                const relation = await vscode.window.showQuickPick(relationNotSelected)
+                if (!relation) return vscode.window.showInformationMessage('Please select relation')
+
+                const { template, position } = this.handleExistRelation(relation, mapLines)
+                if (!position) return vscode.window.showInformationMessage('Can not find position to insert')
+
+                edit.insert(document.uri, position, template)
+            } else {
+                const relation = await vscode.window.showQuickPick(relations)
+                if (!relation) return vscode.window.showInformationMessage('Please select relation')
+
+                const { template, position } = this.handleNotExistRelation(relation, mapLines)
+                if (!position) return vscode.window.showInformationMessage('Can not find position to insert')
+
+                edit.insert(document.uri, position, template);
+            }
+        }
+
+
+        vscode.workspace.applyEdit(edit)
+    }
+
+    private getRelationSelected(mapLines: Map<number, string>) {
+        for (const [lineNumber, value] of mapLines.entries()) {
+            const matchRelations = value.match(/relations:.*\[/)
+
+            if (matchRelations) {
+                const matchRelationsProps = value.match(/'\w+'/g)
+
+                if (!matchRelationsProps) return []
+                return matchRelationsProps.map(prop => prop.replace(/'/g, ''))
+            }
+        }
+        return []
+    }
+
+    private getEntityFromFunction(document: vscode.TextDocument, range: vscode.Range) {
+        const start = range.start;
+        const line = document.lineAt(start.line);
+        const entities = line.text.match(/\s[A-z]+\./)
+        if (!entities?.length) return ''
+
+        const entity = entities[0].replace(' ', '').replace('.', '')
+        return entity
+    }
+
+    private handleNotExistRelation(relation: string, mapLines: Map<number, string>): { template: string, position: vscode.Position | null } {
+        let template = ``
+        let indexOf = 0
+        const [firstKey, firstValue] = mapLines.entries().next().value
+
+        const matchBracket = firstValue.match(/(\(\W*[a-zA-Z-_]+,\s{)|(\({)/)
+        if (matchBracket?.length) {
+            const matched = matchBracket[0]
+            template = `\nrelations: ['${relation}'],`
+            indexOf = firstValue.indexOf(matched) != -1 ? firstValue.indexOf(matched) + matched.length : 0
+            return { template, position: new vscode.Position(firstKey, indexOf) }
+        }
+
+        const matchNoBracket = firstValue.match(/\(\W*[a-zA-Z_-\W][^\)]+|(\()/)
+
+        if (matchNoBracket?.length) {
+            const matched = matchNoBracket[0]
+            template = `{\nrelations: ['${relation}']\n}`
+            if (matched.match(/[a-zA-Z]/)) {
+                template = `, {\nrelations: ['${relation}']\n}`
+            }
+            indexOf = firstValue.indexOf(matched) != -1 ? firstValue.indexOf(matched) + matched.length : 0
+            return { template, position: new vscode.Position(firstKey, indexOf) }
+        }
+
+        return { template, position: null }
+    }
+
+    private handleExistRelation(relation: string, mapLines: Map<number, string>): any {
+        let template = `'${relation}', `
+        let indexOf = 0
+
+        for (const [lineNumber, value] of mapLines.entries()) {
+            const matchRelations = value.match(/relations:.*\[/)
+            if (matchRelations) {
+                const matched = matchRelations[0]
+                indexOf = value.indexOf(matched) != -1 ? value.indexOf(matched) + matched.length : 0
+                return { template, position: new vscode.Position(lineNumber, indexOf) }
+            }
+        }
+    }
+
+    private getAllFunctionLine(document: vscode.TextDocument, range: vscode.Range) {
+        const start = range.start;
+        const line = document.lineAt(start.line).text
+        let allLine = line
+        let mapLines = new Map()
+
+        mapLines.set(start.line, line)
+        if (line.match(/(\(\W*[a-zA-z]+\))|(\(\))|(\))/g) || line.includes('})')) {
+            return { allLine, mapLines }
+        }
+
+        const isContinue = true
+        let currentLine = start.line
+        while (isContinue) {
+            const nextLine = document.lineAt(currentLine + 1).text
+            allLine += nextLine
+            mapLines.set(currentLine + 1, nextLine)
+            if (nextLine.includes('})')) {
+                return { allLine, mapLines }
+            }
+            currentLine += 1
+        }
+
+        return { allLine, mapLines }
+    }
+
+    private getRelationsEntity(name: string): any {
+        const lines = FSProvider.getLinesDocumentInFile(`src/entity/${name}.ts`)
+        if (!lines.length) return
+        const relations = []
+        for (let index = 0; index < lines.length; index++) {
+            const line = lines[index];
+            if (line.includes('@ManyToMany') || line.includes('@OneToMany') || line.includes('@ManyToOne')) {
+                let lineProperty = lines[index + 1]
+                if (lineProperty.includes('@')) {
+                    lineProperty = lines[index + 2]
+                }
+                lineProperty = lineProperty.replace(':', '').replace(';', '')
+                const words = lineProperty.split(' ').filter(Boolean)
+                if (words.length > 1) relations.push(words[0])
+                else continue
+            }
+        }
+        return relations
+    }
+
+    private createEntityFunction(document: vscode.TextDocument, range: vscode.Range, typeFunc: EntityFunctionAction): vscode.CodeAction {
+        const entity = new vscode.CodeAction(typeFunc, vscode.CodeActionKind.QuickFix);
+        switch (typeFunc) {
+            case EntityFunctionAction.AddRelation:
+                entity.command = {
+                    command: typeFunc,
+                    title: 'Add relation: ',
+                    tooltip: 'Add relation: ',
+                    arguments: [document, range]
+                };
+                break
+
+
+
+            default:
+                break;
+
+        }
+
+        return entity;
     }
 
     private getPropertiesEntity(name: string): any {

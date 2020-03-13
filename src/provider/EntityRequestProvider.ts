@@ -80,13 +80,12 @@ export class EntityRequestActionProvider implements vscode.CodeActionProvider {
             return vscode.window.showInformationMessage('Find not found properties in entity')
 
         const propertiesInEntityRequest = this.getPropertiesEntityRequest(document)
-        console.log('propertiesInEntityRequest:', propertiesInEntityRequest)
 
         const propertiesNotInEntityRequest = propertiesInEntity.filter(property => {
             if (propertiesInEntityRequest.indexOf(property) == -1)
                 return property
         })
-        console.log('propertiesNotInEntityRequest:', propertiesNotInEntityRequest)
+
         if (!propertiesNotInEntityRequest.length)
             return vscode.window.showInformationMessage('All property were selected')
 
