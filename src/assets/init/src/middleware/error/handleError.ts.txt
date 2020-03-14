@@ -8,7 +8,8 @@ function logRequest(req: Request, err: any) {
     const messageHeader = `Headers: ${JSON.stringify(req.headers, null, "\t")}`
     const messageBody = `Body: ${JSON.stringify(req.body, null, "\t")}`
     const messageQuery = `Query: ${JSON.stringify(req.query, null, "\t")}`
-
+    
+    console.log('err:', JSON.stringify(err))
     logger('error').error(`\n${messageSummary}\n${messageHeader}\n${messageBody}\n${messageQuery}\n${messageError}`)
 }
 
