@@ -21,7 +21,7 @@ enum PropertyType {
     Double = 'DOUBLE',
     BalanceColumn = 'BALANCE COLUMN',
     IsBlockColumn = 'IS BLOCK COLUMN',
-    IsShowColumn = 'IS SHOW COLUMN'
+    IsDeleteColumn = 'IS DELETE COLUMN'
 }
 
 export class EntityActionProvider implements vscode.CodeActionProvider {
@@ -145,7 +145,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             PropertyType.Text,
             PropertyType.Double,
             PropertyType.IsBlockColumn,
-            PropertyType.IsShowColumn,
+            PropertyType.IsDeleteColumn,
             PropertyType.BalanceColumn,
         ])
         const edit = new vscode.WorkspaceEdit();
@@ -181,11 +181,11 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                         `);
                         break
 
-                    case PropertyType.IsShowColumn:
+                    case PropertyType.IsDeleteColumn:
                         edit.insert(document.uri, new vscode.Position(index + 1, 0), `
-                        @Column({ default: true })
+                        @Column({ default: false, select: false })
                         @JsonProperty()
-                        isShow: boolean
+                        isDeleted: boolean
                         `);
                         break
 

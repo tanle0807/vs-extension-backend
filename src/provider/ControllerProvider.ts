@@ -7,7 +7,7 @@ export enum ControllerAction {
     CreateItem = 'BMD: Create item',
     CreateItemEntityRequest = 'BMD: Create item by entity-request',
     DeleteItemByRemove = 'BMD: Delete item by remove',
-    DeleteItemByBlock = 'BMD: Delete item by block',
+    DeleteItemByBlock = 'BMD: Delete item by hide',
     Upload = 'BMD: Upload',
 }
 
@@ -168,7 +168,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                         break;
 
                     case ControllerAction.DeleteItemByBlock:
-                        edit.insert(document.uri, new vscode.Position(index - 1, 0), this.generateDeleteByBlock(entity));
+                        edit.insert(document.uri, new vscode.Position(index - 1, 0), this.generateDeleteByHide(entity));
                         break;
 
                     case ControllerAction.Upload:
@@ -324,7 +324,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         return template
     }
 
-    private generateDeleteByBlock = (name: string) => {
+    private generateDeleteByHide = (name: string) => {
         const nameTextTypes = getFullTextType(name)
         let template = `
 
@@ -340,7 +340,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
             @PathParams("{{camel}}Id") {{camel}}Id: number,
         ) {
             let {{camel}} = await {{cap}}.findOneOrThrowId({{camel}}Id)
-            {{camel}}.isBlock = true
+            {{camel}}.isDeleted = true
             await {{camel}}.save()
             return res.sendOK({{camel}})
         }
