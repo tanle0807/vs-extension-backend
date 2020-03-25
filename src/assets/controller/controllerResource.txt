@@ -45,23 +45,6 @@ export class {{classify}}Controller {
     }
 
 
-    // =====================GET ITEM=====================
-    @Get('/:{{camel}}Id')
-    @UseAuth(VerificationJWT)
-    @Validator({
-        {{camel}}Id: Joi.number().required(),
-    })
-    async findOne(
-        @HeaderParams("token") token: string,
-        @Req() req: Request,
-        @Res() res: Response,
-        @PathParams("{{camel}}Id"){{camel}}Id: number,
-    ) {
-        const {{camel}} = await {{classify}}.findOneOrThrowId({{camel}}Id)
-        return res.sendOK({{camel}})
-    }
-
-
     // =====================CREATE ITEM=====================
     @Post('')
     @UseAuth(VerificationJWT)
