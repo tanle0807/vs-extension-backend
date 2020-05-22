@@ -119,6 +119,11 @@ const OPTION: any = {
     multer: {
         storage: handleStorage(),
     },
+    logger: {
+        logStart: false,
+        format: `%[%d{[hh:mm:ss dd/MM/yyyy}] %p%] %m`,
+        requestFields: ["method", "url", "body", "query", "params"]
+    }
 }
 
 

@@ -6,7 +6,8 @@ export enum EntityAction {
     AddProperty = 'BMD: Add property entity',
     OneToMany = 'BMD: OneToMany with ',
     ManyToOne = 'BMD: ManyToOne with ',
-    ManyToMany = 'BMD: ManyToMany with '
+    ManyToMany = 'BMD: ManyToMany with ',
+    OneToOne = 'BMD: OneToOne with '
 }
 
 export enum EntityFunctionAction {
@@ -50,13 +51,15 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             const insertOneToMany = this.createEntityAction(document, range, EntityAction.OneToMany);
             const insertManyToOne = this.createEntityAction(document, range, EntityAction.ManyToOne);
             const insertManyToMany = this.createEntityAction(document, range, EntityAction.ManyToMany);
+            const insertOneToOne = this.createEntityAction(document, range, EntityAction.OneToOne);
 
             vscode.commands.executeCommand('editor.action.formatDocument')
 
             return [
                 insertOneToMany,
                 insertManyToOne,
-                insertManyToMany
+                insertManyToMany,
+                insertOneToOne
             ];
         }
 
@@ -124,6 +127,15 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                     command: typeFunc,
                     title: 'ManyToMany with:',
                     tooltip: 'ManyToMany with:',
+                    arguments: [document]
+                };
+                break
+
+            case EntityAction.OneToOne:
+                entity.command = {
+                    command: typeFunc,
+                    title: 'OneToOne with:',
+                    tooltip: 'OneToOne with:',
                     arguments: [document]
                 };
                 break
@@ -280,6 +292,12 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                         edit.insert(document.uri, new vscode.Position(index + 1, 0), template);
                         break
 
+                    case EntityAction.OneToOne:
+                        template = await this.generateRelations(entity, EntityAction.OneToOne)
+                        if (!template) return
+                        edit.insert(document.uri, new vscode.Position(index + 1, 0), template);
+                        break
+
                     default:
                         break;
                 }
@@ -291,11 +309,9 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
 
     private generateRelations = async (name1: string, relation: EntityAction) => {
         const entities = FSProvider.getAllFileInFolder('/src/entity')
-        const name2 = await vscode.window.showQuickPick(entities, { placeHolder: 'Select entity' })
+        let name2 = await vscode.window.showQuickPick(entities, { placeHolder: 'Select entity' })
         if (!name2) return ''
 
-        const nameTextTypes1 = getFullTextType(name1)
-        const nameTextTypes2 = getFullTextType(name2)
         let injectString1 = ''
 
         switch (relation) {
@@ -318,14 +334,26 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                 @ManyToOne(type => {{cap2}}, {{camel2}}s => {{camel2}}s.{{camel1}}s)
                 {{camel2}}s: {{cap2}}[];
                 `
+
+            case EntityAction.OneToOne:
+                injectString1 = `
+                @OneToOne(type => {{cap2}}, {{camel2}} => {{camel2}}.{{camel1}})
+                {{camel2}}: {{cap2}}[];
+                `
                 break;
         }
+
+        const nameTextTypes1 = getFullTextType(name1)
+        const nameTextTypes2 = getFullTextType(name2)
 
         injectString1 = injectString1.replace(/{{camel1}}/g, nameTextTypes1.camelCase);
         injectString1 = injectString1.replace(/{{camel2}}/g, nameTextTypes2.camelCase);
         injectString1 = injectString1.replace(/{{cap1}}/g, nameTextTypes1.classifyCase);
         injectString1 = injectString1.replace(/{{cap2}}/g, nameTextTypes2.classifyCase);
 
+        if (injectString1.includes('ys')) {
+            injectString1 = injectString1.replace(/ys/g, 'ies');
+        }
         return injectString1
     }
 
@@ -376,7 +404,8 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             const matchRelations = value.match(/relations:.*\[/)
 
             if (matchRelations) {
-                const matchRelationsProps = value.match(/'\w+'/g)
+                const matchRelationsProps = value.match(/('\w*'|'\w*\.\w*')/g)
+                console.log('matchRelationsProps:', matchRelationsProps)
 
                 if (!matchRelationsProps) return []
                 return matchRelationsProps.map(prop => prop.replace(/'/g, ''))
@@ -463,24 +492,50 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         return { allLine, mapLines }
     }
 
-    private getRelationsEntity(name: string): any {
+    private getRelationsEntity(name: string): any[] {
+        const finalRelation: any[] = []
+        const { relations, entities } = this.getRelationsEntityDeeper(name)
+        if (!relations || !relations.length) return []
+
+        relations.map((r: any, i: number) => {
+            finalRelation.push(r)
+            const nextRelations = this.getRelationsEntityDeeper(entities[i], name)
+
+            if (relations && relations.length) {
+                finalRelation.push(...nextRelations.relations.map((n: any) => `${r}.${n}`))
+            }
+        })
+        return finalRelation
+    }
+
+    private getRelationsEntityDeeper(name: string, nameExcept: string = ''): any {
         const lines = FSProvider.getLinesDocumentInFile(`src/entity/${name}.ts`)
-        if (!lines.length) return
+        if (!lines.length) return []
         const relations = []
+        const nextEntity = []
         for (let index = 0; index < lines.length; index++) {
             const line = lines[index];
-            if (line.includes('@ManyToMany') || line.includes('@OneToMany') || line.includes('@ManyToOne')) {
+            if (line.includes('@ManyToMany') || line.includes('@OneToMany') || line.includes('@ManyToOne') || line.includes('@OneToOne')) {
                 let lineProperty = lines[index + 1]
                 if (lineProperty.includes('@')) {
                     lineProperty = lines[index + 2]
                 }
-                lineProperty = lineProperty.replace(':', '').replace(';', '')
+                if (lineProperty.includes('@')) {
+                    lineProperty = lines[index + 3]
+                }
+                lineProperty = lineProperty.replace(':', '').replace(';', '').replace('[]', '')
+
+                if (nameExcept && lineProperty.includes(nameExcept)) continue
+
                 const words = lineProperty.split(' ').filter(Boolean)
-                if (words.length > 1) relations.push(words[0])
-                else continue
+                if (words.length > 1) {
+                    relations.push(words[0])
+                    nextEntity.push(words[1])
+                }
             }
         }
-        return relations
+
+        return { relations, entities: nextEntity }
     }
 
     private createEntityFunction(document: vscode.TextDocument, range: vscode.Range, typeFunc: EntityFunctionAction): vscode.CodeAction {

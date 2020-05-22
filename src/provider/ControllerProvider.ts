@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { getFullTextType } from '../util';
+import { FSProvider } from '../FsProvider';
 
 export enum ControllerAction {
     GetListPagination = 'BMD: Get list pagination',
@@ -9,6 +10,10 @@ export enum ControllerAction {
     DeleteItemByRemove = 'BMD: Delete item by remove',
     DeleteItemByBlock = 'BMD: Delete item by hide',
     Upload = 'BMD: Upload',
+}
+
+export enum ConstructorFunction {
+    PrivateService = 'BMD: Private service'
 }
 
 export class ControllerActionProvider implements vscode.CodeActionProvider {
@@ -22,41 +27,57 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         range: any,
         context: vscode.CodeActionContext
     ): vscode.CodeAction[] | undefined {
-        if (!this.isControllerClass(document, range)) return
+        if (this.isControllerClass(document, range)) {
 
-        const insertGetListPagination = this.createControllerFunc(document, range, ControllerAction.GetListPagination);
+            const insertGetListPagination = this.createControllerFunc(document, range, ControllerAction.GetListPagination);
 
-        const insertGetListAll = this.createControllerFunc(document, range, ControllerAction.GetListAll);
-        insertGetListAll.isPreferred = true
-        // insertGetListAll.
+            const insertGetListAll = this.createControllerFunc(document, range, ControllerAction.GetListAll);
+            insertGetListAll.isPreferred = true
+            // insertGetListAll.
 
-        const insertCreateItem = this.createControllerFunc(document, range, ControllerAction.CreateItem);
-        insertCreateItem.isPreferred = true
+            const insertCreateItem = this.createControllerFunc(document, range, ControllerAction.CreateItem);
+            insertCreateItem.isPreferred = true
 
-        const insertCreateItemEntityRequest = this.createControllerFunc(document, range, ControllerAction.CreateItemEntityRequest);
-        insertCreateItemEntityRequest.isPreferred = true
+            const insertCreateItemEntityRequest = this.createControllerFunc(document, range, ControllerAction.CreateItemEntityRequest);
+            insertCreateItemEntityRequest.isPreferred = true
 
-        const insertDeleteItemByRemove = this.createControllerFunc(document, range, ControllerAction.DeleteItemByRemove);
-        const insertDeleteItemByBlock = this.createControllerFunc(document, range, ControllerAction.DeleteItemByBlock);
-        const insertUpload = this.createControllerFunc(document, range, ControllerAction.Upload);
+            const insertDeleteItemByRemove = this.createControllerFunc(document, range, ControllerAction.DeleteItemByRemove);
+            const insertDeleteItemByBlock = this.createControllerFunc(document, range, ControllerAction.DeleteItemByBlock);
+            const insertUpload = this.createControllerFunc(document, range, ControllerAction.Upload);
 
-        vscode.commands.executeCommand('editor.action.formatDocument')
+            vscode.commands.executeCommand('editor.action.formatDocument')
 
-        return [
-            insertGetListPagination,
-            insertGetListAll,
-            insertCreateItem,
-            insertCreateItemEntityRequest,
-            insertDeleteItemByRemove,
-            insertDeleteItemByBlock,
-            insertUpload
-        ];
+            return [
+                insertGetListPagination,
+                insertGetListAll,
+                insertCreateItem,
+                insertCreateItemEntityRequest,
+                insertDeleteItemByRemove,
+                insertDeleteItemByBlock,
+                insertUpload
+            ]
+        }
+        if (this.isConstructorFunction(document, range)) {
+            const insertPrivateService = this.createConstructorFunc(document, range, ConstructorFunction.PrivateService);
+
+            vscode.commands.executeCommand('editor.action.formatDocument')
+
+            return [
+                insertPrivateService
+            ]
+        }
     }
 
     private isControllerClass(document: vscode.TextDocument, range: vscode.Range) {
         const start = range.start;
         const line = document.lineAt(start.line);
         return line.text.includes('Controller') && line.text.includes('class')
+    }
+
+    private isConstructorFunction(document: vscode.TextDocument, range: vscode.Range) {
+        const start = range.start;
+        const line = document.lineAt(start.line);
+        return line.text.includes('constructor')
     }
 
 
@@ -133,6 +154,48 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
 
         return controller;
     }
+
+    private createConstructorFunc(document: vscode.TextDocument, range: vscode.Range, typeFunc: ConstructorFunction): vscode.CodeAction {
+        const controller = new vscode.CodeAction(typeFunc, vscode.CodeActionKind.QuickFix);
+        switch (typeFunc) {
+            case ConstructorFunction.PrivateService:
+                controller.command = {
+                    command: typeFunc,
+                    title: 'Insert private service.',
+                    tooltip: 'Insert private service.',
+                    arguments: [document]
+                };
+                break
+
+
+            default:
+                break;
+
+        }
+
+        return controller;
+    }
+
+    public async insertPrivateService(typeFunc: ConstructorFunction, document: any) {
+        const edit = new vscode.WorkspaceEdit();
+        const services = FSProvider.getAllFileInFolder('/src/services')
+        const service = await vscode.window.showQuickPick([...services])
+        if (!service) return vscode.window.showInformationMessage('Please select service to complete action')
+        const fullTextService = getFullTextType(service)
+        const content = `\nprivate ${fullTextService.camelCase}: ${service},`
+
+        for (let index = 0; index < document.lineCount; index++) {
+            const line = document.lineAt(index).text
+            if (line.includes('constructor')) {
+                const matched = 'constructor('
+                const indexOf = line.indexOf(matched) != -1 ? line.indexOf(matched) + matched.length : 0
+                edit.insert(document.uri, new vscode.Position(index, indexOf), content);
+            }
+        }
+
+        vscode.workspace.applyEdit(edit)
+    }
+
 
     public insertControllerFunc(typeFunc: ControllerAction, document: any): void {
         const edit = new vscode.WorkspaceEdit();

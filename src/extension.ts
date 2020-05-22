@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { FSProvider } from './FsProvider';
 import Handler from './Handler';
-import { ControllerActionProvider, ControllerAction } from './provider/ControllerProvider';
+import { ControllerActionProvider, ControllerAction, ConstructorFunction } from './provider/ControllerProvider';
 import { ServiceActionProvider, ServiceAction } from './provider/ServiceProvider';
 import { EntityActionProvider, EntityAction, EntityFunctionAction } from './provider/EntityProvider';
 import { EntityRequestActionProvider, EntityRequestAction } from './provider/EntityRequestProvider';
@@ -117,6 +117,10 @@ export function activate(context: vscode.ExtensionContext) {
 		controllerProvider.insertControllerFunc(ControllerAction.Upload, e)
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand(ConstructorFunction.PrivateService, async (e) => {
+		await controllerProvider.insertPrivateService(ConstructorFunction.PrivateService, e)
+	}));
+
 
 	// Use for service action
 
@@ -156,6 +160,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.ManyToMany, async (e) => {
 		entityProvider.insertEntityAction(EntityAction.ManyToMany, e)
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.OneToOne, async (e) => {
+		entityProvider.insertEntityAction(EntityAction.OneToOne, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityFunctionAction.AddRelation, async (e, r) => {
