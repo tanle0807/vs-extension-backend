@@ -2,15 +2,14 @@ import { Service } from "@tsed/common";
 
 import { Mailer } from "../util/mailer";
 import config from "../../config";
-import fs from 'fs';
 import { Customer } from "../entity/Customer";
 
 @Service()
 export class MailService {
 
-    async sendMailLinkReset(token: string, customer: Customer) {
+    async sendMailLinkReset(forgotCode: string, customer: Customer) {
         const subject = 'Yêu cầu quên mật khẩu.'
-        const content = this.generateTemplateForgotPassword(token)
+        const content = this.generateTemplateForgotPassword(forgotCode)
         Mailer.sendMail(customer.email, subject, content)
     }
 
@@ -34,7 +33,7 @@ export class MailService {
         let template = this.getFullTemplate()
         template = template.replace(/{{href}}/g, config.HOST);
         template = template.replace(/{{title}}/g, 'YÊU CẦU QUÊN MẬT KHẨU');
-        const body = this.generateRow(`<h3><a href="${'https://' + config.HOST + '/#/forget?token=' + token}">Vui lòng click vào đây để xác nhận quên mật khẩu</a></h3>`)
+        const body = this.generateRow(`<h3>Vui lòng không chia sẽ mã này với bất kì ai. Đây là mã reset mật khẩu của bạn: ${token}</h3>`)
         template = template.replace(/{{body}}/g, body);
         return template
     }
