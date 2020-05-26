@@ -18,9 +18,10 @@ echo '==========================================================================
 rm -rf deploy
 mkdir deploy
 cp -r ./dist ./deploy/dist
+cp -r ./src/ssl/ ./deploy/dist/src/ssl/
 cp -r ./package.json ./deploy/package.json
+cp -r ./package-lock.json ./deploy/package-lock.json
 cp -r .env.production ./deploy/.env
-
 cd deploy
 
 git init

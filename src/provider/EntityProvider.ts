@@ -245,7 +245,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
 
             case PropertyType.Text:
                 return `
-                @Column('text', { default: '' })
+                @Column('text', { nullable: true })
                 @JsonProperty()
                 ${fullTextType.camelCase}: string;
                 `

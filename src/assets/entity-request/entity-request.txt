@@ -7,7 +7,7 @@ import { {{classify}} } from '../entity/{{classify}}';
 export class {{classifyRaw}} {
     // Transform to draw entity
     to{{classify}}(): {{classify}} {
-        let {{camel}} = new {{classify}}()
+        const {{camel}} = new {{classify}}()
 
         return {{camel}}
     }

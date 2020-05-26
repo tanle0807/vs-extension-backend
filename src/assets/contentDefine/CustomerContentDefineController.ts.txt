@@ -25,7 +25,7 @@ export class ContentDefineController {
         @Req() req: Request,
         @Res() res: Response
     ) {
-        let content = await ContentDefine.findOneOrThrowOption({
+        const content = await ContentDefine.findOneOrThrowOption({
             where: { type }
         })
         return res.sendOK(content)

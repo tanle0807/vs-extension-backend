@@ -1,7 +1,7 @@
 import moment from 'moment';
-
+import 'moment/locale/vi'
 import config from '../../config';
-
+moment.locale('vi')
 const SECONDS_IN_A_DAY = 60 * 60 * 24
 /**
  * ==============================================================================
@@ -16,6 +16,18 @@ const SECONDS_IN_A_DAY = 60 * 60 * 24
  */
 export const capitalize = ([first, ...rest]: string, lowerRest = false) =>
     first.toUpperCase() + (lowerRest ? rest.join('').toLowerCase() : rest.join(''));
+
+
+/**
+ * Capitalizes the first letter of a string.
+ * Example: capitalize('fooBar');       // 'FooBar'
+ *          capitalize('fooBar', true); // 'Foobar'
+ */
+export const isNumberPhoneVN = (phone: string) => {
+    const regex = /((03|04|05|07|08|09)+([0-9]{8})\b)/g
+    return regex.test(phone)
+}
+
 
 /**
  * Capitalizes the first letter of every word in a string.
@@ -91,6 +103,10 @@ const pick = (obj: any, arr: string[]) =>
  * ====================================TIME====================================
  * ==============================================================================
  */
+export function getCurrentDateDDMMYY(): string {
+    return moment().format('DDMMYY')
+}
+
 export function getCurrentTimeInt(): number {
     return +(moment().valueOf() / 1000).toFixed()
 }
@@ -118,7 +134,7 @@ export function convertIntToDDMMYY(int: number): string {
 }
 
 export function convertIntToddddDDMMYY(int: number): string {
-    return moment(int * 1000).lang('vi').format('dddd, DD/MM/YYYY')
+    return moment(int * 1000).locale('vi').format('dddd, DD/MM/YYYY')
 }
 
 export function convertDateToInt(date: Date): number {
@@ -209,6 +225,10 @@ export function getRandomIntInclusive(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
 }
 
+export function roundToThousand(value: number) {
+    return (value / 1000 * 1000)
+}
+
 /**
  * ==============================================================================
  * ====================================UTILITY====================================
@@ -224,6 +244,16 @@ export function addPrefix(table: string) {
     return prefix + table
 }
 
+
+/**
+* Pads the current string with 0
+* Example: leftPad(10, 6);                              // 000010
+*/
+export function leftPad(number: number, maxLength: number) {
+    return `${number}`.padStart(maxLength, "0")
+}
+
+
 /**
 * Logging follow format, easy to see
 * Example: logSection('production mode');
@@ -234,3 +264,9 @@ export function logSection(text: string) {
     console.log(`......................................${text}......................................`);
     console.log('..........................................................................................');
 }
+
+export function sleep(ms: number) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}   

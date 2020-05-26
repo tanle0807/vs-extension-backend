@@ -283,6 +283,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         template = template.replace(/{{cap}}/g, nameTextTypes.classifyCase);
         template = template.replace(/{{dollar}}/g, '$');
         template = template.replace(/{{backtick}}/g, '`');
+        template = template.replace(/ys/g, 'ies');
         return template
     }
 
@@ -308,6 +309,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         `
         template = template.replace(/{{camel}}/g, nameTextTypes.camelCase);
         template = template.replace(/{{cap}}/g, nameTextTypes.classifyCase);
+        template = template.replace(/ys/g, 'ies');
         return template
     }
 
@@ -333,6 +335,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         `
         template = template.replace(/{{camel}}/g, nameTextTypes.camelCase);
         template = template.replace(/{{cap}}/g, nameTextTypes.classifyCase);
+        template = template.replace(/ys/g, 'ies');
         return template
     }
 
@@ -425,8 +428,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
             @Res() res: Response,
             @MultipartFile('file') file: Express.Multer.File,
         ) {
-            file.path = file.path.replace(config.UPLOAD_DIR, '');
-    
+            file.path = file.path.replace(CONFIG.UPLOAD_DIR, '');
             return res.sendOK(file)
         }
         `
