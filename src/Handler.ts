@@ -35,7 +35,9 @@ export default class Handler {
         FSProvider.copyFile('init/src/controllers/admin/CustomerController.ts.txt', 'src/controllers/admin/CustomerController.ts')
         FSProvider.copyFile('init/src/controllers/admin/RoleController.ts.txt', 'src/controllers/admin/RoleController.ts')
         FSProvider.copyFile('init/src/controllers/admin/StaffController.ts.txt', 'src/controllers/admin/StaffController.ts')
+        FSProvider.copyFile('init/src/controllers/admin/AuthController.ts.txt', 'src/controllers/admin/AuthController.ts')
         FSProvider.copyFile('init/src/controllers/customer/CustomerController.ts.txt', 'src/controllers/customer/CustomerController.ts')
+        FSProvider.copyFile('init/src/controllers/customer/AuthController.ts.txt', 'src/controllers/customer/AuthController.ts')
 
         FSProvider.copyFile('init/src/core/entity/CoreEntity.ts.txt', 'src/core/entity/CoreEntity.ts')
         FSProvider.copyFile('init/src/core/services/CoreService.ts.txt', 'src/core/services/CoreService.ts')
@@ -87,10 +89,12 @@ export default class Handler {
         FSProvider.makeFolder('log/error')
         FSProvider.makeFolder('src')
 
-        FSProvider.copyAndReplaceFile(
-            'init/package.json.txt',
-            'package.json',
-            [{ regex: /{{snake}}/g, value: projectNameTypes.snakeCase }])
+        // FSProvider.copyAndReplaceFile(
+        //     'init/package.json.txt',
+        //     'package.json',
+        //     [{ regex: /{{snake}}/g, value: projectNameTypes.snakeCase }])
+        FSProvider.copyFile('init/package.json.txt', 'package.json')
+        FSProvider.copyFile('init/package-lock.json.txt', 'package-lock.json')
 
         initEnv('init/.env.production.txt', '.env.production')
         initEnv('init/.env.example.txt', '.env.example')

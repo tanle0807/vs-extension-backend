@@ -17,6 +17,7 @@ import JWT, { AuthType } from '../../middleware/auth/strategy/JWT';
 import { Role } from '../../entity/Role';
 import { StaffUpdate } from '../../entity-request/StaffUpdate';
 import { Password } from '../../util/password';
+import CONFIG from '../../../config';
 
 @Controller("/admin/staff")
 @Docs("docs_admin")
@@ -27,110 +28,23 @@ export class StaffController {
     ) { }
 
 
-    // =====================LOGIN=====================
-    @Post('/login')
-    @Validator({
-        username: Joi.string().required(),
-        password: Joi.string().required()
-    })
-    async login(
-        @BodyParams('username') username: string,
-        @BodyParams('password') password: string,
-        @Res() res: Response
-    ) {
-        const user = await this.staffService.login(username, password);
-
-        const token = JWT.sign({ id: user.id, type: AuthType.Staff });
-
-        return res.sendOK({ token })
-    }
-
-
-    // =====================PROFILE=====================
-    @Get('/profile')
-    @UseAuth(VerificationJWT)
-    async getInfo(
-        @Req() req: Request,
-        @Res() res: Response,
-        @HeaderParams("token") token: string,
-    ) {
-        const staff = await Staff.findOneOrThrowId(req.staff.id, {
-            relations: ['role']
-        });
-
-        return res.sendOK(staff)
-    }
-
-
-    // =====================UPDATE PASSWORD=====================
-    @Post('/profile/password/update')
-    @UseAuth(VerificationJWT)
-    @Validator({
-        oldPassword: Joi.string().required(),
-        newPassword: Joi.string().required()
-    })
-    async changePassword(
-        @Req() req: Request,
-        @Res() res: Response,
-        @BodyParams('oldPassword') oldPassword: string,
-        @BodyParams('newPassword') newPassword: string,
-        @HeaderParams("token") token: string,
-    ) {
-        const { staff } = req;
-
-        // Get user with old password
-        const isValidPass = await staff.isValidPassword(oldPassword)
-        if (!isValidPass) {
-            return res.sendClientError('Mật khẩu cũ không đúng')
-        }
-
-        if (oldPassword == newPassword) {
-            return res.sendClientError('Mật khẩu mới không được trùng mật khẩu cũ');
-        }
-
-        staff.password = await Password.hash(newPassword)
-        await staff.save()
-
-        return res.sendOK(staff, 'Cập nhật mật khẩu thành công');
-    }
-
-
-    // =====================GET PERMISSION=====================
-    @Get('/profile/permission')
-    @UseAuth(VerificationJWT)
-    async getPermission(
-        @Req() req: Request,
-        @Res() res: Response,
-        @HeaderParams("token") token: string,
-    ) {
-        const { id } = req.staff;
-        const permissions = await this.staffService.getPermission(id);
-        return res.sendOK(permissions);
-    }
-
-
-    // =====================GET LIST STAFF=====================
+    // =====================GET LIST=====================
     @Get('')
     @UseAuth(VerificationJWT)
     async findAll(
         @QueryParams('page') page: number,
         @QueryParams('limit') limit: number,
         @QueryParams('search') search: string = '',
-        @QueryParams('isBlock') isBlock: boolean,
         @HeaderParams("token") token: string,
         @Req() req: Request,
         @Res() res: Response
     ) {
-        const where = {
-            name: Raw(alias => `concat( ${alias}, " ",  phone, " ", username) LIKE "%${search}%"`),
-            isBlock
-        };
-        if (req.query.isBlock === undefined) delete where.isBlock;
-
         const [staff, total] = await Staff.findAndCount({
             skip: (page - 1) * limit,
             take: limit,
-            where,
+            where: {
+                name: Raw(alias => `concat( ${alias}, " ",  phone, " ", username) LIKE "%${search}%"`),
+            },
             relations: ['role'],
             order: { id: 'DESC' }
         });
@@ -139,22 +53,7 @@ export class StaffController {
     }
 
 
-    // =====================GET ANOTHER STAFF INFO=====================
-    @Get('/:staffId')
-    @UseAuth(VerificationJWT)
-    async findOne(
-        @PathParams('staffId') staffId: number,
-        @HeaderParams("token") token: string,
-        @Req() req: Request,
-        @Res() res: Response,
-    ) {
-        const staff = await Staff.findOneOrThrowId(staffId, { relations: ['role'] });
-
-        return res.sendOK(staff)
-    }
-
-
-    // =====================CREATE ADMIN=====================
+    // =====================CREATE=====================
     @Post('')
     @UseAuth(VerificationJWT)
     @Validator({
@@ -176,7 +75,7 @@ export class StaffController {
         delete staff.id;
         await staff.save();
 
-        return { id: staff.id };
+        return res.sendOK(staff)
     }
 
 
@@ -203,7 +102,7 @@ export class StaffController {
         newStaff.role = role
         await newStaff.save();
 
-        return { id: newStaff.id };
+        return res.sendOK(staff)
     }
 
 
@@ -225,7 +124,7 @@ export class StaffController {
         staff.password = await Password.hash(newPassword);
         await staff.save();
 
-        return { id: staff.id };
+        return res.sendOK(staff)
     }
 
 
@@ -243,30 +142,14 @@ export class StaffController {
         @Req() req: Request,
         @Res() res: Response,
     ) {
-        await Staff.findOneOrThrowId(staffId);
+        const staff = await Staff.findOneOrThrowId(staffId);
         const role = await Role.findOneOrThrowId(roleId);
 
-        const user = new Staff();
-        user.id = staffId;
-        user.role = role;
-        await user.save();
+        staff.id = staffId;
+        staff.role = role;
+        await staff.save();
 
-        return { id: user.id };
-    }
-
-
-    // =====================UPLOAD AVATAR=====================
-    @Post('/file/upload')
-    @UseAuth(VerificationJWT)
-    uploadFile(
-        @MultipartFile('file') file: Express.Multer.File,
-        @HeaderParams("token") token: string,
-        @Req() req: Request,
-        @Res() res: Response,
-    ) {
-        file.path = file.path.replace(config.UPLOAD_DIR, '');
-
-        return res.sendOK(file)
+        return res.sendOK(staff)
     }
 
 
@@ -291,6 +174,20 @@ export class StaffController {
         } else {
             return res.sendClientError('Wrong password')
         }
+    }
+
+
+    // =====================UPLOAD IMAGE=====================
+    @Post('/upload')
+    @UseAuth(VerificationJWT)
+    uploadFile(
+        @HeaderParams("token") token: string,
+        @Req() req: Request,
+        @Res() res: Response,
+        @MultipartFile('file') file: Express.Multer.File,
+    ) {
+        file.path = file.path.replace(CONFIG.UPLOAD_DIR, '');
+        return res.sendOK(file)
     }
 
 } // END FILE
