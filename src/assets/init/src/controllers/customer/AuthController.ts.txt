@@ -155,7 +155,7 @@ export class AuthController {
         }
 
         const ia = JWT.getIa(token)
-        if (ia < customer.dateUpdated) {
+        if (ia < customer.updatedAt) {
             return res.sendClientError("Yêu cầu đã hết hạn. Vui lòng gửi yêu cầu khác.")
         }
 

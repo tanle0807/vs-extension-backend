@@ -17,10 +17,10 @@ export default class CoreEntity extends BaseEntity {
     id: number;
 
     @Column()
-    dateCreated: number;
+    createdAt: number;
 
     @Column()
-    dateUpdated: number;
+    updatedAt: number;
 
 
     // METHODS
@@ -33,9 +33,9 @@ export default class CoreEntity extends BaseEntity {
 
     save(): Promise<this> {
         if (!this.hasId()) {
-            this.dateCreated = getCurrentTimeInt()
+            this.createdAt = getCurrentTimeInt()
         }
-        this.dateUpdated = getCurrentTimeInt()
+        this.updatedAt = getCurrentTimeInt()
         return super.save()
     }
 

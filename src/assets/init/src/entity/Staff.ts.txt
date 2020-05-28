@@ -23,7 +23,7 @@ export class Staff extends CoreEntity {
     @Column({ select: false })
     password: string;
 
-    @Column()
+    @Column({ default: "" })
     @JsonProperty()
     name: string;
 
@@ -31,11 +31,11 @@ export class Staff extends CoreEntity {
     @JsonProperty()
     avatar: string;
 
-    @Column()
+    @Column({ default: "" })
     @JsonProperty()
     phone: string
 
-    @Column()
+    @Column({ default: "" })
     @JsonProperty()
     email: string
 
@@ -50,7 +50,7 @@ export class Staff extends CoreEntity {
 
 
     // METHODS
-    
+
     async isValidPassword(password: string): Promise<boolean> {
         const validate = await Password.validate(password, this.password)
         return validate
