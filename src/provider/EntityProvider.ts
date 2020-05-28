@@ -354,6 +354,9 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         if (injectString1.includes('ys')) {
             injectString1 = injectString1.replace(/ys/g, 'ies');
         }
+        if (injectString1.includes('sss')) {
+            injectString1 = injectString1.replace(/sss/g, 'sses');
+        }
         return injectString1
     }
 
