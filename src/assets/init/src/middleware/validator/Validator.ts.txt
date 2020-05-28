@@ -77,7 +77,7 @@ function handleMessage(language: string, error: ValidationErrorItem, labels: any
     // else return getMessageWithCustomLabels(labelsEnglish, Language.English, error)
 }
 
-function handleResultValidate(result: ValidationResult<any>, req: any, labels: any): string {
+function handleResultValidate(result: any, req: any, labels: any): string {
     const language = handleLanguageRequest(req)
     if (!result || !result.error) return
 
