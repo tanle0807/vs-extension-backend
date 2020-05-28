@@ -71,8 +71,15 @@ function handleStorage(): multer.StorageEngine {
         ) => {
             const controller = req.ctx.endpoint.targetName
             const des = controller.replace("Controller", "").toLowerCase()
-            if (!des) callback(new Error("Wrong controller"), null);
-            else callback(null, `${CONFIG.UPLOAD_DIR}/${des}`)
+            if (!des) {
+                callback(new Error("Wrong controller"), null)
+            } else {
+                const uploadPath = `${CONFIG.UPLOAD_DIR}/${des}`
+                if (!fs.existsSync(uploadPath)) {
+                    fs.mkdirSync(uploadPath);
+                }
+                callback(null, uploadPath)
+            }
         },
         filename: (
             req: Express.Request,
