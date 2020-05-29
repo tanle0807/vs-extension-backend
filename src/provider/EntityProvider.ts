@@ -331,9 +331,10 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
 
             case EntityAction.ManyToMany:
                 injectString1 = `
-                @ManyToOne(type => {{cap2}}, {{camel2}}s => {{camel2}}s.{{camel1}}s)
+                @ManyToMany(type => {{cap2}}, {{camel2}}s => {{camel2}}s.{{camel1}}s)
                 {{camel2}}s: {{cap2}}[];
                 `
+                break;
 
             case EntityAction.OneToOne:
                 injectString1 = `
