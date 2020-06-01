@@ -261,9 +261,9 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         async findAll(
             @HeaderParams('token') token: string,
             @Req() req: Request,
-            @Res() res: Response
-            @QueryParams('page') page: number,
-            @QueryParams('limit') limit: number,
+            @Res() res: Response,
+            @QueryParams('page') page: number = 1,
+            @QueryParams('limit') limit: number = 10,
             @QueryParams('search') search: string = '',
         ) {
             const [{{camel}}s, total] = await {{cap}}.findAndCount({
@@ -294,10 +294,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         // =====================GET LIST=====================
         @Get('')
         @UseAuth(VerificationJWT)
-        @Validator({
-            page: Joi.number().min(0),
-            limit: Joi.number().min(0)
-        })
+        @Validator({})
         async findAll(
             @HeaderParams('token') token: string,
             @Req() req: Request,

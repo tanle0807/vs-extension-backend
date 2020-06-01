@@ -26,8 +26,8 @@ export class {{classify}}Controller {
     })
     async findAll(
         @HeaderParams("token") token: string,
-        @QueryParams("page") page: number,
-        @QueryParams("limit") limit: number,
+        @QueryParams("page") page: number = 1,
+        @QueryParams("limit") limit: number = 10,
         @QueryParams("search") search: string = "",
         @Req() req: Request,
         @Res() res: Response
@@ -76,7 +76,6 @@ export class {{classify}}Controller {
         @BodyParams("{{camel}}") {{camel}}: {{classify}},
         @PathParams("{{camel}}Id") {{camel}}Id: number,
     ) {
-        // This will check and throw error if not exist 
         await {{classify}}.findOneOrThrowId({{camel}}Id)
         {{camel}}.id = +{{camel}}Id
         await {{camel}}.save()
