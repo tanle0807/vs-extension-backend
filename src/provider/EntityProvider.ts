@@ -120,7 +120,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                 isIncludesEntity = true
             }
         })
-        return isIncludesEntity
+        return isIncludesEntity && !line.text.includes('Controller') && !line.text.includes('Service')
     }
 
 
