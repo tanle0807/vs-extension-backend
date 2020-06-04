@@ -16,6 +16,7 @@ export enum ConstructorFunction {
     PrivateService = 'BMD: Private service'
 }
 
+
 export class ControllerActionProvider implements vscode.CodeActionProvider {
 
     public static readonly providedCodeActionKinds = [
@@ -78,6 +79,12 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         const start = range.start;
         const line = document.lineAt(start.line);
         return line.text.includes('constructor')
+    }
+
+    private isQueryBuilder(document: vscode.TextDocument, range: vscode.Range) {
+        const start = range.start;
+        const line = document.lineAt(start.line);
+        return line.text.includes('createQueryBuilder')
     }
 
 

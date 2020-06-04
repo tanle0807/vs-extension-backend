@@ -121,7 +121,6 @@ export function activate(context: vscode.ExtensionContext) {
 		await controllerProvider.insertPrivateService(ConstructorFunction.PrivateService, e)
 	}));
 
-
 	// Use for service action
 
 	context.subscriptions.push(
@@ -168,6 +167,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityFunctionAction.AddRelation, async (e, r) => {
 		entityProvider.insertEntityFunction(EntityFunctionAction.AddRelation, e, r)
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand(EntityFunctionAction.CreateQueryBuilder, async (e, r) => {
+		entityProvider.insertQueryBuilder(EntityFunctionAction.CreateQueryBuilder, e, r)
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand(EntityFunctionAction.FindOneOrThrowID, async (e, r) => {
+		entityProvider.insertFindOneOrThrow(EntityFunctionAction.FindOneOrThrowID, e, r)
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand(EntityFunctionAction.AddBuilderRelation, async (e, r) => {
+		entityProvider.insertBuilderRelation(EntityFunctionAction.AddBuilderRelation, e, r)
 	}));
 
 	// Use for entity request action

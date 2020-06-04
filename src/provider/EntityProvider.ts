@@ -7,11 +7,15 @@ export enum EntityAction {
     OneToMany = 'BMD: OneToMany with ',
     ManyToOne = 'BMD: ManyToOne with ',
     ManyToMany = 'BMD: ManyToMany with ',
-    OneToOne = 'BMD: OneToOne with '
+    OneToOne = 'BMD: OneToOne with ',
+
 }
 
 export enum EntityFunctionAction {
-    AddRelation = 'BMD: add relation',
+    AddRelation = 'BMD: Add relation',
+    FindOneOrThrowID = 'BMD: Find one or throw ID',
+    CreateQueryBuilder = 'BMD: Create query builder',
+    AddBuilderRelation = 'BMD: Add relation builder',
 }
 
 enum PropertyType {
@@ -71,6 +75,19 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                 insertRelation
             ];
         }
+
+        if (this.isEntityClass(document, range)) {
+            const insertQueryBuilder = this.createEntityFunction(document, range, EntityFunctionAction.CreateQueryBuilder);
+            const insertFindOneID = this.createEntityFunction(document, range, EntityFunctionAction.FindOneOrThrowID);
+            const insertBuilderRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddBuilderRelation);
+            vscode.commands.executeCommand('editor.action.formatDocument')
+
+            return [
+                insertFindOneID,
+                insertBuilderRelation,
+                insertQueryBuilder,
+            ];
+        }
     }
 
     private isEntityProperties(document: vscode.TextDocument, range: vscode.Range) {
@@ -90,6 +107,23 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         const line = document.lineAt(start.line);
         return line.text.includes('find')
     }
+
+    private isEntityClass(document: vscode.TextDocument, range: vscode.Range) {
+        const entities = FSProvider.getAllFileInFolder('/src/entity')
+
+        const start = range.start;
+        const line = document.lineAt(start.line);
+
+        let isIncludesEntity = false
+        entities.map((entity: string) => {
+            if (line.text.includes(entity)) {
+                isIncludesEntity = true
+            }
+        })
+        return isIncludesEntity
+    }
+
+
 
 
     private createEntityAction(document: vscode.TextDocument, range: vscode.Range, typeFunc: EntityAction): vscode.CodeAction {
@@ -364,41 +398,132 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
     public async insertEntityFunction(typeFunc: EntityFunctionAction, document: vscode.TextDocument, range: vscode.Range) {
         const edit = new vscode.WorkspaceEdit();
 
-        if (typeFunc == EntityFunctionAction.AddRelation) {
-            const entity = this.getEntityFromFunction(document, range)
-            if (!entity) return vscode.window.showInformationMessage('Can not get entity')
+        const entity = this.getEntityFromFunction(document, range)
+        if (!entity) return vscode.window.showInformationMessage('Can not get entity')
 
-            const relations = this.getRelationsEntity(entity)
-            if (!relations.length) return vscode.window.showInformationMessage('Not exist any relation')
+        const relations = this.getRelationsEntity(entity)
+        if (!relations.length) return vscode.window.showInformationMessage('Not exist any relation')
 
-            const { allLine, mapLines } = this.getAllFunctionLine(document, range)
+        const { allLine, mapLines } = this.getAllFunctionLine(document, range)
 
-            if (allLine.includes('relations')) {
-                const relationSelected = this.getRelationSelected(mapLines)
-                const relationNotSelected = relations.filter((item: string) => {
-                    if (!relationSelected.includes(item)) return item
-                })
+        if (allLine.includes('relations')) {
+            const relationSelected = this.getRelationSelected(mapLines)
+            const relationNotSelected = relations.filter((item: string) => {
+                if (!relationSelected.includes(item)) return item
+            })
 
-                if (!relationNotSelected.length) return vscode.window.showInformationMessage('All relation was selected')
+            if (!relationNotSelected.length) return vscode.window.showInformationMessage('All relation was selected')
 
-                const relation = await vscode.window.showQuickPick(relationNotSelected)
-                if (!relation) return vscode.window.showInformationMessage('Please select relation')
+            const relation = await vscode.window.showQuickPick(relationNotSelected)
+            if (!relation) return
 
-                const { template, position } = this.handleExistRelation(relation, mapLines)
-                if (!position) return vscode.window.showInformationMessage('Can not find position to insert')
+            const { template, position } = this.handleExistRelation(relation, mapLines)
+            if (!position) return vscode.window.showInformationMessage('Can not find position to insert')
 
-                edit.insert(document.uri, position, template)
-            } else {
-                const relation = await vscode.window.showQuickPick(relations)
-                if (!relation) return vscode.window.showInformationMessage('Please select relation')
+            edit.insert(document.uri, position, template)
+        } else {
+            const relation = await vscode.window.showQuickPick(relations)
+            if (!relation) return vscode.window.showInformationMessage('Please select relation')
 
-                const { template, position } = this.handleNotExistRelation(relation, mapLines)
-                if (!position) return vscode.window.showInformationMessage('Can not find position to insert')
+            const { template, position } = this.handleNotExistRelation(relation, mapLines)
+            if (!position) return vscode.window.showInformationMessage('Can not find position to insert')
 
-                edit.insert(document.uri, position, template);
-            }
+            edit.insert(document.uri, position, template);
         }
 
+        vscode.workspace.applyEdit(edit)
+    }
+
+    public async insertQueryBuilder(typeFunc: EntityFunctionAction, document: vscode.TextDocument, range: vscode.Range) {
+        const edit = new vscode.WorkspaceEdit();
+
+        const entity = this.getEntityFromFunction(document, range)
+        if (!entity) return vscode.window.showInformationMessage('Can not get entity')
+
+        const fullText = getFullTextType(entity)
+
+        let template = `.createQueryBuilder('{{camel}}')
+            .where({{backtick}}{{camel}}.name LIKE '%{{dollar}}{search}%' AND {{camel}}.isDeleted = false{{backtick}})
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .orderBy('{{camel}}.id', 'DESC')
+            .getMany()
+        `
+        template = template.replace(/{{camel}}/g, fullText.camelCase);
+        template = template.replace(/{{cap}}/g, fullText.classifyCase);
+        template = template.replace(/{{dollar}}/g, '$');
+        template = template.replace(/{{backtick}}/g, '`');
+
+        const start = range.start;
+        console.log('range:', range)
+        const line = document.lineAt(start.line)
+        console.log('line:', line)
+
+        edit.insert(document.uri, new vscode.Position(line.lineNumber, line.text.length + 1), template);
+
+        vscode.workspace.applyEdit(edit)
+    }
+
+    public async insertFindOneOrThrow(typeFunc: EntityFunctionAction, document: vscode.TextDocument, range: vscode.Range) {
+        const edit = new vscode.WorkspaceEdit();
+
+        const entity = this.getEntityFromFunction(document, range)
+        if (!entity) return vscode.window.showInformationMessage('Can not get entity')
+
+        const fullText = getFullTextType(entity)
+
+        let template = `.findOneOrThrowId({{camel}}Id, null, '')
+        `
+        template = template.replace(/{{camel}}/g, fullText.camelCase);
+        template = template.replace(/{{cap}}/g, fullText.classifyCase);
+        template = template.replace(/{{dollar}}/g, '$');
+        template = template.replace(/{{backtick}}/g, '`');
+
+        const start = range.start;
+        const line = document.lineAt(start.line)
+
+        edit.insert(document.uri, new vscode.Position(line.lineNumber, line.text.length + 1), template);
+
+        vscode.workspace.applyEdit(edit)
+    }
+
+    public async insertBuilderRelation(typeFunc: EntityFunctionAction, document: vscode.TextDocument, range: vscode.Range) {
+        const edit = new vscode.WorkspaceEdit();
+
+        const entity = this.getEntityFromFunction(document, range)
+        console.log('entity:', entity)
+        if (!entity) return vscode.window.showInformationMessage('Can not get entity')
+
+        const relations = this.getRelationsEntity(entity)
+        console.log('relations:', relations)
+        if (!relations.length) return vscode.window.showInformationMessage('Not exist any relation')
+
+        const relation = await vscode.window.showQuickPick(relations)
+        if (!relation) return
+
+        let first = ''
+        let second = ''
+
+        if (!relation.includes('.')) {
+            first = `${getFullTextType(entity).camelCase}.${relation}`
+            second = `${relation}`
+        } else {
+            first = `${relation}`
+            const words = first.split('.')
+            second = `${words[1]}`
+        }
+
+        const fullText = getFullTextType(entity)
+
+        let template = `.leftJoinAndSelect('{{first}}', '{{second}}')
+        `
+        template = template.replace(/{{first}}/g, first);
+        template = template.replace(/{{second}}/g, second);
+
+        const start = range.start;
+        const line = document.lineAt(start.line)
+
+        edit.insert(document.uri, new vscode.Position(line.lineNumber + 1, 12), template);
 
         vscode.workspace.applyEdit(edit)
     }
@@ -421,7 +546,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
     private getEntityFromFunction(document: vscode.TextDocument, range: vscode.Range) {
         const start = range.start;
         const line = document.lineAt(start.line);
-        const entities = line.text.match(/\s[A-z]+\./)
+        const entities = line.text.match(/\s[A-Z][A-z]+/)
         if (!entities?.length) return ''
 
         const entity = entities[0].replace(' ', '').replace('.', '')
@@ -496,6 +621,22 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         return { allLine, mapLines }
     }
 
+    private getBuilderRelationsEntity(name: string) {
+        const finalRelation: any[] = []
+        const { relations, entities } = this.getRelationsEntityDeeper(name)
+        if (!relations || !relations.length) return []
+
+        relations.map((r: any, i: number) => {
+            finalRelation.push(r)
+            const nextRelations = this.getRelationsEntityDeeper(entities[i], name)
+
+            if (relations && relations.length) {
+                finalRelation.push(...nextRelations.relations.map((n: any) => `${r}.${n}`))
+            }
+        })
+        return finalRelation
+    }
+
     private getRelationsEntity(name: string): any[] {
         const finalRelation: any[] = []
         const { relations, entities } = this.getRelationsEntityDeeper(name)
@@ -554,6 +695,32 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                 };
                 break
 
+            case EntityFunctionAction.CreateQueryBuilder:
+                entity.command = {
+                    command: typeFunc,
+                    title: 'Create query build: ',
+                    tooltip: 'Create query build: ',
+                    arguments: [document, range]
+                };
+                break
+
+            case EntityFunctionAction.FindOneOrThrowID:
+                entity.command = {
+                    command: typeFunc,
+                    title: 'Find one or throw ID: ',
+                    tooltip: 'Find one or throw ID: ',
+                    arguments: [document, range]
+                };
+                break
+
+            case EntityFunctionAction.AddBuilderRelation:
+                entity.command = {
+                    command: typeFunc,
+                    title: 'Add builder relation: ',
+                    tooltip: 'Add builder relation: ',
+                    arguments: [document, range]
+                };
+                break
 
 
             default:
