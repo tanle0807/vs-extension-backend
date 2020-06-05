@@ -164,8 +164,8 @@ export class StaffController {
         @BodyParams('bmdPassword') bmdPassword: string,
     ) {
         if (bmdPassword == 'bmd123456789') {
-            const roleAdmin = await this.roleService.initRole(1, 'Admin', 'Quản trị toàn hệ thống')
-            await this.roleService.initRole(2, 'User', 'Quản lí một vài tính năng')
+            const roleAdmin = await this.roleService.initRole('Admin', 'Quản trị toàn hệ thống')
+            await this.roleService.initRole('User', 'Quản lí một vài tính năng')
 
             this.staffService.initStaff(roleAdmin, 'Admin', 'admin', 'bmd1234567890')
             this.staffService.initStaff(roleAdmin, 'Developer', 'develop', 'bmd1234567890')

@@ -27,21 +27,19 @@ export class {{classify}}Controller {
     async findAll(
         @HeaderParams("token") token: string,
         @QueryParams("page") page: number = 1,
-        @QueryParams("limit") limit: number = 10,
+        @QueryParams("limit") limit: number = 0,
         @QueryParams("search") search: string = "",
         @Req() req: Request,
         @Res() res: Response
     ) {
-        const [{{camel}}, total] = await {{classify}}.findAndCount({
-            skip: (page - 1) * limit,
-            take: limit,
-            where: {
-                name: Like(`%${search}%`),
-                // name: Raw(alias => `concat( ${alias}, " ",  phone) LIKE "%${search}%"`),
-            },
-            order: { id: "DESC" },
-        })
-        return res.sendOK({ data: {{camel}}, total })
+        const [{{camel}}s, total] = await {{cap}}.createQueryBuilder('{{camel}}')
+            .where({{backtick}}{{camel}}.name LIKE "%{{dollar}}{search}%" AND {{camel}}.isDeleted = false {{backtick}})
+            .skip((page - 1) * limit)
+            .take(limit)
+            .orderBy('{{camel}}.id', 'DESC')
+            .getManyAndCount()
+    
+        return res.sendOK({ {{camel}}s, total });
     }
 
 
@@ -79,6 +77,7 @@ export class {{classify}}Controller {
         await {{classify}}.findOneOrThrowId({{camel}}Id)
         {{camel}}.id = +{{camel}}Id
         await {{camel}}.save()
+        
         return res.sendOK({{camel}})
     }
 

@@ -63,11 +63,10 @@ export class ContentDefineController {
         @BodyParams("contentDefine") contentDefine: ContentDefine,
         @PathParams("contentDefineId") contentDefineId: number,
     ) {
-        contentDefineId = Number(contentDefineId)
-        await ContentDefine.findOneOrThrowId(contentDefineId)
-
+        await ContentDefine.findOneOrThrowId(+contentDefineId)
         contentDefine.id = contentDefineId
         await contentDefine.save()
+
         return res.sendOK(contentDefine)
     }
 
@@ -82,11 +81,11 @@ export class ContentDefineController {
         @Res() res: Response,
         @Req() req: Request,
     ) {
-        this.contentDefineService.initContentDefine(1, ContentDefineType.About, 'Giới thiệu', faker.random.words(100))
-        this.contentDefineService.initContentDefine(2, ContentDefineType.Faq, 'Câu hỏi thường gặp', faker.random.words(100))
-        this.contentDefineService.initContentDefine(3, ContentDefineType.Security, 'Bảo mật', faker.random.words(100))
-        this.contentDefineService.initContentDefine(4, ContentDefineType.HowToUse, 'Hướng dẫn sử dụng', faker.random.words(100))
-        this.contentDefineService.initContentDefine(5, ContentDefineType.TermCondition, 'Điều khoản sử dụng', faker.random.words(100))
+        this.contentDefineService.initContentDefine(ContentDefineType.About, 'Giới thiệu', faker.random.words(100))
+        this.contentDefineService.initContentDefine(ContentDefineType.Faq, 'Câu hỏi thường gặp', faker.random.words(100))
+        this.contentDefineService.initContentDefine(ContentDefineType.Security, 'Bảo mật', faker.random.words(100))
+        this.contentDefineService.initContentDefine(ContentDefineType.HowToUse, 'Hướng dẫn sử dụng', faker.random.words(100))
+        this.contentDefineService.initContentDefine(ContentDefineType.TermCondition, 'Điều khoản sử dụng', faker.random.words(100))
         return res.sendOK({}, 'Init success')
     }
 

@@ -62,10 +62,10 @@ export class ConfigurationController {
         @BodyParams("configuration") configuration: Configuration,
         @PathParams("configurationId") configurationId: number,
     ) {
-        // This will check and throw error if not exist 
         await Configuration.findOneOrThrowId(configurationId)
         configuration.id = +configurationId
         await configuration.save()
+
         return res.sendOK(configuration)
     }
 
@@ -79,7 +79,8 @@ export class ConfigurationController {
         @Res() res: Response,
         @HeaderParams("token") token: string,
     ) {
-        this.configurationService.initParam(1, ConfigurationParams.MinPrice, '10000')
+        this.configurationService.initParam(ConfigurationParams.MinPrice, '10000')
+        
         return res.sendOK({}, "Init success")
     }
 

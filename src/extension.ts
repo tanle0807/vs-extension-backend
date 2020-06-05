@@ -101,6 +101,10 @@ export function activate(context: vscode.ExtensionContext) {
 		controllerProvider.insertControllerFunc(ControllerAction.CreateItem, e)
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.UpdateItem, async (e) => {
+		controllerProvider.insertControllerFunc(ControllerAction.UpdateItem, e)
+	}));
+
 	context.subscriptions.push(vscode.commands.registerCommand(ControllerAction.CreateItemEntityRequest, async (e) => {
 		controllerProvider.insertControllerFunc(ControllerAction.CreateItemEntityRequest, e)
 	}));

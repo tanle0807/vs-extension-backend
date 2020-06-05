@@ -16,12 +16,11 @@ export class ConfigurationService {
         return config.value || null
     }
 
-    public async initParam(id: number, param: ConfigurationParams, value: string) {
-        const commission = new Configuration()
-        commission.id = id
-        commission.param = param
-        commission.value = value
-        await commission.save()
+    public async initParam(param: ConfigurationParams, value: string) {
+        const configuration = new Configuration()
+        configuration.param = param
+        configuration.value = value
+        await configuration.save()
     }
 
 } //END FILE

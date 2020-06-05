@@ -54,12 +54,12 @@ export class RoleService extends CoreService {
 
 
     // =====================INIT=====================
-    async initRole(id: number, name: string, description: string) {
+    async initRole(name: string, description: string) {
         const role = new Role()
-        role.id = id
         role.name = name
         role.description = description
         await role.save()
+        
         return role
     }
 

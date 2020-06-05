@@ -6,6 +6,7 @@ export enum ControllerAction {
     GetListPagination = 'BMD: Get list pagination',
     GetListAll = 'BMD: Get list all',
     CreateItem = 'BMD: Create item',
+    UpdateItem = 'BMD: Update item',
     CreateItemEntityRequest = 'BMD: Create item by entity-request',
     DeleteItemByRemove = 'BMD: Delete item by remove',
     DeleteItemByBlock = 'BMD: Delete item by hide',
@@ -45,6 +46,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
             const insertDeleteItemByRemove = this.createControllerFunc(document, range, ControllerAction.DeleteItemByRemove);
             const insertDeleteItemByBlock = this.createControllerFunc(document, range, ControllerAction.DeleteItemByBlock);
             const insertUpload = this.createControllerFunc(document, range, ControllerAction.Upload);
+            const insertUpdateItem = this.createControllerFunc(document, range, ControllerAction.UpdateItem);
 
             vscode.commands.executeCommand('editor.action.formatDocument')
 
@@ -52,6 +54,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 insertGetListPagination,
                 insertGetListAll,
                 insertCreateItem,
+                insertUpdateItem,
                 insertCreateItemEntityRequest,
                 insertDeleteItemByRemove,
                 insertDeleteItemByBlock,
@@ -229,6 +232,10 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                         edit.insert(document.uri, new vscode.Position(index - 1, 0), this.generateCreateItem(entity));
                         break;
 
+                    case ControllerAction.UpdateItem:
+                        edit.insert(document.uri, new vscode.Position(index - 1, 0), this.generateUpdateItem(entity));
+                        break;
+
                     case ControllerAction.CreateItemEntityRequest:
                         edit.insert(document.uri, new vscode.Position(index - 1, 0), this.generateCreateItemRequest(entity));
                         break;
@@ -270,18 +277,15 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
             @Req() req: Request,
             @Res() res: Response,
             @QueryParams('page') page: number = 1,
-            @QueryParams('limit') limit: number = 10,
+            @QueryParams('limit') limit: number = 0,
             @QueryParams('search') search: string = '',
         ) {
-            const [{{camel}}s, total] = await {{cap}}.findAndCount({
-                skip: (page - 1) * limit,
-                take: limit,
-                where: {
-                    name: Raw( alias => {{backtick}}concat({{dollar}}{ alias}, " ", phone) LIKE "%{{dollar}}{search}%"{{backtick}} ),
-                    // name: Like({{backtick}}% {{dollar}}{ search }%{{backtick}})
-                },
-                order: { id: 'DESC' }
-            });
+            const [{{camel}}s, total] = await {{cap}}.createQueryBuilder('{{camel}}')
+            .where({{backtick}}{{camel}}.name LIKE "%{{dollar}}{search}%" AND {{camel}}.isDeleted = false {{backtick}})
+            .skip((page - 1) * limit)
+            .take(limit)
+            .orderBy('{{camel}}.id', 'DESC')
+            .getManyAndCount()
     
             return res.sendOK({ {{camel}}s, total });
         }
@@ -436,6 +440,36 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
             return res.sendOK(file)
         }
         `
+        return template
+    }
+
+    private generateUpdateItem = (name: string) => {
+        const nameTextTypes = getFullTextType(name)
+        let template = `
+
+        // =====================UPDATE ITEM=====================
+        @Post('/:{{camel}}Id/update')
+        @UseAuth(VerificationJWT)
+        @Validator({
+            {{camel}}: Joi.required(),
+            {{camel}}Id: Joi.number().required()
+        })
+        async update(
+            @HeaderParams("token") token: string,
+            @Req() req: Request,
+            @Res() res: Response,
+            @BodyParams("{{camel}}") {{camel}}: {{classify}},
+            @PathParams("{{camel}}Id") {{camel}}Id: number,
+        ) {
+            await {{classify}}.findOneOrThrowId({{camel}}Id)
+            {{camel}}.id = +{{camel}}Id
+            await {{camel}}.save()
+            
+            return res.sendOK({{camel}})
+        }
+        `
+        template = template.replace(/{{camel}}/g, nameTextTypes.camelCase);
+        template = template.replace(/{{cap}}/g, nameTextTypes.classifyCase);
         return template
     }
 }
