@@ -121,6 +121,15 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
                 };
                 break;
 
+            case ControllerAction.UpdateItem:
+                controller.command = {
+                    command: typeFunc,
+                    title: 'Update item.',
+                    tooltip: 'Update item.',
+                    arguments: [document]
+                };
+                break;
+
             case ControllerAction.CreateItemEntityRequest:
                 controller.command = {
                     command: typeFunc,

@@ -445,7 +445,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         let template = `.createQueryBuilder('{{camel}}')
             .where({{backtick}}{{camel}}.name LIKE '%{{dollar}}{search}%' AND {{camel}}.isDeleted = false{{backtick}})
             .skip((page - 1) * limit)
-            .limit(limit)
+            .take(limit)
             .orderBy('{{camel}}.id', 'DESC')
             .getMany()
         `
