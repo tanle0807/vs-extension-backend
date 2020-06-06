@@ -32,7 +32,7 @@ export class {{classify}}Controller {
         @Req() req: Request,
         @Res() res: Response
     ) {
-        const [{{camel}}s, total] = await {{cap}}.createQueryBuilder('{{camel}}')
+        const [{{camel}}s, total] = await {{classify}}.createQueryBuilder('{{camel}}')
             .where({{backtick}}{{camel}}.name LIKE "%{{dollar}}{search}%" AND {{camel}}.isDeleted = false {{backtick}})
             .skip((page - 1) * limit)
             .take(limit)
