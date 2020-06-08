@@ -447,7 +447,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             .skip((page - 1) * limit)
             .take(limit)
             .orderBy('{{camel}}.id', 'DESC')
-            .getMany()
+            .getManyAndCount()
         `
         template = template.replace(/{{camel}}/g, fullText.camelCase);
         template = template.replace(/{{cap}}/g, fullText.classifyCase);

@@ -478,7 +478,7 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         }
         `
         template = template.replace(/{{camel}}/g, nameTextTypes.camelCase);
-        template = template.replace(/{{cap}}/g, nameTextTypes.classifyCase);
+        template = template.replace(/{{classify}}/g, nameTextTypes.classifyCase);
         return template
     }
 }
