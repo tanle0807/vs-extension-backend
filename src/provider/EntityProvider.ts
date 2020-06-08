@@ -80,7 +80,6 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             const insertQueryBuilder = this.createEntityFunction(document, range, EntityFunctionAction.CreateQueryBuilder);
             const insertFindOneID = this.createEntityFunction(document, range, EntityFunctionAction.FindOneOrThrowID);
             const insertBuilderRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddBuilderRelation);
-            vscode.commands.executeCommand('editor.action.formatDocument')
 
             return [
                 insertFindOneID,
