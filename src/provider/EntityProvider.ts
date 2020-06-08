@@ -42,9 +42,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
     ): vscode.CodeAction[] | undefined {
 
         if (this.isEntityProperties(document, range)) {
-            const addProperty = this.createEntityAction(document, range, EntityAction.AddProperty);
-
-            vscode.commands.executeCommand('editor.action.formatDocument')
+            const addProperty = this.createEntityAction(document, range, EntityAction.AddProperty)
 
             return [
                 addProperty
@@ -57,8 +55,6 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             const insertManyToMany = this.createEntityAction(document, range, EntityAction.ManyToMany);
             const insertOneToOne = this.createEntityAction(document, range, EntityAction.OneToOne);
 
-            vscode.commands.executeCommand('editor.action.formatDocument')
-
             return [
                 insertOneToMany,
                 insertManyToOne,
@@ -69,7 +65,6 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
 
         if (this.isEntityFunction(document, range)) {
             const insertRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddRelation);
-            vscode.commands.executeCommand('editor.action.formatDocument')
 
             return [
                 insertRelation
