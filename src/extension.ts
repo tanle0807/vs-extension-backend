@@ -141,6 +141,10 @@ export function activate(context: vscode.ExtensionContext) {
 		await serviceProvider.insertServiceFunc(ServiceAction.GetSum)
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand(ServiceAction.GetManyAndCount, async (e) => {
+		serviceProvider.insertServiceFunc(ServiceAction.GetManyAndCount)
+	}));
+
 	// Use for entity action
 
 	context.subscriptions.push(

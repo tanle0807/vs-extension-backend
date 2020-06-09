@@ -4,7 +4,8 @@ import { getFullTextType } from '../util';
 
 export enum ServiceAction {
     GetLast30 = 'BMD: Get last 30',
-    GetSum = 'BMD: Get sum'
+    GetSum = 'BMD: Get sum',
+    GetManyAndCount = 'BMD: Get many and count'
 }
 
 export class ServiceActionProvider implements vscode.CodeActionProvider {
@@ -22,10 +23,12 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
 
         const insertGetLast30 = this.createServiceFunc(document, range, ServiceAction.GetLast30);
         const insertGetSum = this.createServiceFunc(document, range, ServiceAction.GetSum);
+        const insertGetManyAndCount = this.createServiceFunc(document, range, ServiceAction.GetManyAndCount);
 
         vscode.commands.executeCommand('editor.action.formatDocument')
 
         return [
+            insertGetManyAndCount,
             insertGetLast30,
             insertGetSum
         ];
@@ -46,6 +49,7 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
             title: 'Get list with pagination.',
             tooltip: 'Get list with pagination.'
         };
+
         switch (typeFunc) {
             case ServiceAction.GetLast30:
                 service.command = {
@@ -63,6 +67,14 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
                 };
                 break
 
+            case ServiceAction.GetManyAndCount:
+                service.command = {
+                    command: typeFunc,
+                    title: 'Get many and count.',
+                    tooltip: 'Get many and count.'
+                };
+                break
+
             default:
                 break;
 
@@ -70,6 +82,7 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
 
         return service;
     }
+
 
     public async insertServiceFunc(typeFunc: ServiceAction): Promise<void> {
         const documents = vscode.workspace.textDocuments
@@ -94,6 +107,10 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
                         edit.insert(document.uri, new vscode.Position(index - 1, 0), await this.generateGetSum(entity));
                         break
 
+                    case ServiceAction.GetManyAndCount:
+                        edit.insert(document.uri, new vscode.Position(index - 1, 0), await this.generateGetManyAndCount(entity));
+                        break
+
                     default:
                         break;
                 }
@@ -101,6 +118,31 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
         }
 
         vscode.workspace.applyEdit(edit)
+    }
+
+    private generateGetManyAndCount = (name: string) => {
+        const nameTextTypes = getFullTextType(name)
+        let template = `
+        // =====================GET MANY AND COUNT=====================
+        public async getManyAndCount({ page, limit, search }): Promise<[{{cap}}[], number]> {
+            let where = {{backtick}}{{camel}}.name LIKE '%{{dollar}}{search}%' AND {{camel}}.isDeleted = false{{backtick}}
+    
+            const [{{camel}}, total] = await {{cap}}.createQueryBuilder('{{camel}}')
+                .where(where)
+                .skip((page - 1) * limit)
+                .take(limit)
+                .orderBy('{{camel}}.id', 'DESC')
+                .getManyAndCount()
+    
+            return [{{camel}}, total]
+        }
+        `
+        template = template.replace(/{{upper}}/g, nameTextTypes.upperCase);
+        template = template.replace(/{{camel}}/g, nameTextTypes.camelCase);
+        template = template.replace(/{{cap}}/g, nameTextTypes.classifyCase);
+        template = template.replace(/{{dollar}}/g, '$');
+        template = template.replace(/{{backtick}}/g, '`');
+        return template
     }
 
     private generateGetLast30 = (name: string) => {
