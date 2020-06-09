@@ -134,15 +134,15 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(vscode.commands.registerCommand(ServiceAction.GetLast30, async (e) => {
-		serviceProvider.insertServiceFunc(ServiceAction.GetLast30)
+		serviceProvider.insertServiceFunc(ServiceAction.GetLast30, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(ServiceAction.GetSum, async (e) => {
-		await serviceProvider.insertServiceFunc(ServiceAction.GetSum)
+		await serviceProvider.insertServiceFunc(ServiceAction.GetSum, e)
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(ServiceAction.GetManyAndCount, async (e) => {
-		serviceProvider.insertServiceFunc(ServiceAction.GetManyAndCount)
+		serviceProvider.insertServiceFunc(ServiceAction.GetManyAndCount, e)
 	}));
 
 	// Use for entity action

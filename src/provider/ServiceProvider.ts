@@ -47,7 +47,8 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
         service.command = {
             command: typeFunc,
             title: 'Get list with pagination.',
-            tooltip: 'Get list with pagination.'
+            tooltip: 'Get list with pagination.',
+            arguments: [document]
         };
 
         switch (typeFunc) {
@@ -55,7 +56,8 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
                 service.command = {
                     command: typeFunc,
                     title: 'Get last 30.',
-                    tooltip: 'Get last 30.'
+                    tooltip: 'Get last 30.',
+                    arguments: [document]
                 };
                 break
 
@@ -63,7 +65,8 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
                 service.command = {
                     command: typeFunc,
                     title: 'Get sum.',
-                    tooltip: 'Get sum.'
+                    tooltip: 'Get sum.',
+                    arguments: [document]
                 };
                 break
 
@@ -71,7 +74,8 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
                 service.command = {
                     command: typeFunc,
                     title: 'Get many and count.',
-                    tooltip: 'Get many and count.'
+                    tooltip: 'Get many and count.',
+                    arguments: [document]
                 };
                 break
 
@@ -84,9 +88,7 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
     }
 
 
-    public async insertServiceFunc(typeFunc: ServiceAction): Promise<void> {
-        const documents = vscode.workspace.textDocuments
-        const document = documents[0]
+    public async insertServiceFunc(typeFunc: ServiceAction, document: vscode.TextDocument): Promise<void> {
         const edit = new vscode.WorkspaceEdit();
         let entity = 'Entity'
         for (let index = 0; index < document.lineCount; index++) {
@@ -108,7 +110,7 @@ export class ServiceActionProvider implements vscode.CodeActionProvider {
                         break
 
                     case ServiceAction.GetManyAndCount:
-                        edit.insert(document.uri, new vscode.Position(index - 1, 0), await this.generateGetManyAndCount(entity));
+                        edit.insert(document.uri, new vscode.Position(index - 1, 0), this.generateGetManyAndCount(entity));
                         break
 
                     default:
