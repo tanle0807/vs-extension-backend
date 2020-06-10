@@ -39,7 +39,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         range: any,
         context: vscode.CodeActionContext
-    ): vscode.CodeAction[] | undefined {
+    ): vscode.CodeAction[] | undefined | any {
 
         if (this.isEntityProperties(document, range)) {
             const addProperty = this.createEntityAction(document, range, EntityAction.AddProperty)
@@ -63,25 +63,52 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             ];
         }
 
+        const entity = this.getEntityFromFunction(document, range)
+        console.log('entity:', entity)
+
+        const properties = this.getPropertiesEntity(entity)
+        console.log('properties:', properties)
+        let propertyActions: vscode.CodeAction[] = []
+        if (properties) {
+            propertyActions = properties.map(p => {
+                const entity = new vscode.CodeAction(p, vscode.CodeActionKind.QuickFix);
+                return entity
+            })
+        }
+        console.log('propertyActions:', propertyActions)
+
         if (this.isEntityFunction(document, range)) {
             const insertRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddRelation);
 
             return [
-                insertRelation
+                insertRelation,
+                ...propertyActions
             ];
         }
 
-        if (this.isEntityClass(document, range)) {
+        if (this.isEntityClassNotBuilder(document, range)) {
             const insertQueryBuilder = this.createEntityFunction(document, range, EntityFunctionAction.CreateQueryBuilder);
             const insertFindOneID = this.createEntityFunction(document, range, EntityFunctionAction.FindOneOrThrowID);
-            const insertBuilderRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddBuilderRelation);
-
             return [
                 insertFindOneID,
-                insertBuilderRelation,
                 insertQueryBuilder,
+                ...propertyActions
             ];
         }
+
+        if (this.isQueryBuilder(document, range)) {
+            const insertBuilderRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddBuilderRelation);
+            return [
+                insertBuilderRelation,
+                ...propertyActions
+            ];
+        }
+    }
+
+    private isQueryBuilder(document: vscode.TextDocument, range: vscode.Range) {
+        const start = range.start;
+        const line = document.lineAt(start.line);
+        return line.text.includes('createQueryBuilder')
     }
 
     private isEntityProperties(document: vscode.TextDocument, range: vscode.Range) {
@@ -115,6 +142,21 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             }
         })
         return isIncludesEntity && !line.text.includes('Controller') && !line.text.includes('Service')
+    }
+
+    private isEntityClassNotBuilder(document: vscode.TextDocument, range: vscode.Range) {
+        const entities = FSProvider.getAllFileInFolder('/src/entity')
+
+        const start = range.start;
+        const line = document.lineAt(start.line);
+
+        let isIncludesEntity = false
+        entities.map((entity: string) => {
+            if (line.text.includes(entity)) {
+                isIncludesEntity = true
+            }
+        })
+        return isIncludesEntity && !line.text.includes('Controller') && !line.text.includes('Service') && !line.text.includes('createQueryBuilder')
     }
 
 
@@ -449,9 +491,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         template = template.replace(/{{backtick}}/g, '`');
 
         const start = range.start;
-        console.log('range:', range)
         const line = document.lineAt(start.line)
-        console.log('line:', line)
 
         edit.insert(document.uri, new vscode.Position(line.lineNumber, line.text.length + 1), template);
 
@@ -485,11 +525,9 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         const edit = new vscode.WorkspaceEdit();
 
         const entity = this.getEntityFromFunction(document, range)
-        console.log('entity:', entity)
         if (!entity) return vscode.window.showInformationMessage('Can not get entity')
 
         const relations = this.getRelationsEntity(entity)
-        console.log('relations:', relations)
         if (!relations.length) return vscode.window.showInformationMessage('Not exist any relation')
 
         const relation = await vscode.window.showQuickPick(relations)
@@ -528,7 +566,6 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
 
             if (matchRelations) {
                 const matchRelationsProps = value.match(/('\w*'|'\w*\.\w*')/g)
-                console.log('matchRelationsProps:', matchRelationsProps)
 
                 if (!matchRelationsProps) return []
                 return matchRelationsProps.map(prop => prop.replace(/'/g, ''))
@@ -725,9 +762,10 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         return entity;
     }
 
-    private getPropertiesEntity(name: string): any {
+
+    private getPropertiesEntity(name: string): any[] {
         const lines = FSProvider.getLinesDocumentInFile(`src/entity/${name}.ts`)
-        if (!lines.length) return
+        if (!lines.length) return []
         const properties = []
         for (let index = 0; index < lines.length; index++) {
             const line = lines[index];
@@ -735,11 +773,11 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
                 let lineProperty = lines[index + 2]
                 lineProperty = lineProperty.replace(':', '').replace(';', '')
                 const words = lineProperty.split(' ').filter(Boolean)
-                if (words.length > 1 && words[1] == 'number') properties.push(words[0])
+                if (words.length > 1) properties.push(words[0])
                 else continue
             }
         }
         return properties
     }
-
 }
+
