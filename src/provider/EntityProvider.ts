@@ -67,22 +67,34 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         console.log('entity:', entity)
 
         const properties = this.getPropertiesEntity(entity)
-        console.log('properties:', properties)
+
+        const entities = this.getRelationsEntityDeeper(entity).entities
+
         let propertyActions: vscode.CodeAction[] = []
+        let entityActions: vscode.CodeAction[] = []
+
         if (properties) {
             propertyActions = properties.map(p => {
                 const entity = new vscode.CodeAction(p, vscode.CodeActionKind.QuickFix);
                 return entity
             })
         }
-        console.log('propertyActions:', propertyActions)
+
+        if (entities) {
+            entityActions = entities.map(e => {
+                const entity = new vscode.CodeAction(e, vscode.CodeActionKind.QuickFix);
+                return entity
+            })
+        }
+
 
         if (this.isEntityFunction(document, range)) {
             const insertRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddRelation);
 
             return [
                 insertRelation,
-                ...propertyActions
+                ...propertyActions,
+                ...entityActions
             ];
         }
 
@@ -92,7 +104,8 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             return [
                 insertFindOneID,
                 insertQueryBuilder,
-                ...propertyActions
+                ...propertyActions,
+                ...entityActions
             ];
         }
 
@@ -100,7 +113,8 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             const insertBuilderRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddBuilderRelation);
             return [
                 insertBuilderRelation,
-                ...propertyActions
+                ...propertyActions,
+                ...entityActions
             ];
         }
     }
@@ -684,9 +698,9 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         return finalRelation
     }
 
-    private getRelationsEntityDeeper(name: string, nameExcept: string = ''): any {
+    private getRelationsEntityDeeper(name: string, nameExcept: string = ''): { relations: any[], entities: any[] } {
         const lines = FSProvider.getLinesDocumentInFile(`src/entity/${name}.ts`)
-        if (!lines.length) return []
+        if (!lines.length) return { relations: [], entities: [] }
         const relations = []
         const nextEntity = []
         for (let index = 0; index < lines.length; index++) {
