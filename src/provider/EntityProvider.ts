@@ -8,8 +8,9 @@ export enum EntityAction {
     ManyToOne = 'BMD: ManyToOne with ',
     ManyToMany = 'BMD: ManyToMany with ',
     OneToOne = 'BMD: OneToOne with ',
-
 }
+
+export const EXPORT_INTERFACE = 'BMD: Export interface'
 
 export enum EntityFunctionAction {
     AddRelation = 'BMD: Add relation',
@@ -64,14 +65,15 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         }
 
         const entity = this.getEntityFromFunction(document, range)
-        console.log('entity:', entity)
 
         const properties = this.getPropertiesEntity(entity)
 
-        const entities = this.getRelationsEntityDeeper(entity).entities
+        const entities = this.getRelationsEntityDeeper(entity).relations
 
         let propertyActions: vscode.CodeAction[] = []
         let entityActions: vscode.CodeAction[] = []
+
+        const exportInterface = this.createExportInterface(document, range, entity)
 
         if (properties) {
             propertyActions = properties.map(p => {
@@ -93,6 +95,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
 
             return [
                 insertRelation,
+                exportInterface,
                 ...propertyActions,
                 ...entityActions
             ];
@@ -104,6 +107,7 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             return [
                 insertFindOneID,
                 insertQueryBuilder,
+                exportInterface,
                 ...propertyActions,
                 ...entityActions
             ];
@@ -113,10 +117,49 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             const insertBuilderRelation = this.createEntityFunction(document, range, EntityFunctionAction.AddBuilderRelation);
             return [
                 insertBuilderRelation,
+                exportInterface,
                 ...propertyActions,
                 ...entityActions
             ];
         }
+    }
+
+    private createExportInterface(document: vscode.TextDocument, range: vscode.Range, entity: string): vscode.CodeAction {
+        const action = new vscode.CodeAction(EXPORT_INTERFACE, vscode.CodeActionKind.QuickFix)
+
+        action.command = {
+            command: EXPORT_INTERFACE,
+            title: EXPORT_INTERFACE,
+            tooltip: EXPORT_INTERFACE,
+            arguments: [document, range, entity]
+        };
+
+        return action
+    }
+
+    public async createInterface(document: vscode.TextDocument, range: vscode.Range, entity: string) {
+        const edit = new vscode.WorkspaceEdit();
+
+        const linesProperty = this.getPropertyLinesEntity(entity)
+        let line = ``
+        linesProperty.map((l, i) => {
+            i == linesProperty.length - 1 ? line += `${l}` : line += `${l} \n`
+        })
+
+        const linesEntity = this.getLineRelationsEntityDeeper(entity)
+        linesEntity.map((l, i) => {
+            i == linesEntity.length - 1 ? line += `${l}` : line += `${l} \n`
+        })
+
+
+        let template = `
+export interface ${entity} {
+${line}
+}
+        `
+
+        edit.insert(document.uri, new vscode.Position(0, 0), template);
+        vscode.workspace.applyEdit(edit)
     }
 
     private isQueryBuilder(document: vscode.TextDocument, range: vscode.Range) {
@@ -172,9 +215,6 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         })
         return isIncludesEntity && !line.text.includes('Controller') && !line.text.includes('Service') && !line.text.includes('createQueryBuilder')
     }
-
-
-
 
     private createEntityAction(document: vscode.TextDocument, range: vscode.Range, typeFunc: EntityAction): vscode.CodeAction {
         const entity = new vscode.CodeAction(typeFunc, vscode.CodeActionKind.QuickFix);
@@ -792,6 +832,42 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
             }
         }
         return properties
+    }
+
+    private getPropertyLinesEntity(name: string): any[] {
+        const lines = FSProvider.getLinesDocumentInFile(`src/entity/${name}.ts`)
+        if (!lines.length) return []
+        const properties = []
+        for (let index = 0; index < lines.length; index++) {
+            const line = lines[index];
+            if (line.includes('@Column')) {
+                let lineProperty = lines[index + 2]
+                lineProperty = lineProperty.replace(';', '')
+                properties.push(`${lineProperty}`)
+            }
+        }
+        return properties
+    }
+
+    private getLineRelationsEntityDeeper(name: string, nameExcept: string = ''): string[] {
+        const lines = FSProvider.getLinesDocumentInFile(`src/entity/${name}.ts`)
+        if (!lines.length) return []
+        const relations = []
+        for (let index = 0; index < lines.length; index++) {
+            const line = lines[index];
+            if (line.includes('@ManyToMany') || line.includes('@OneToMany') || line.includes('@ManyToOne') || line.includes('@OneToOne')) {
+                let lineProperty = lines[index + 1]
+                if (lineProperty.includes('@')) {
+                    lineProperty = lines[index + 2]
+                }
+                if (lineProperty.includes('@')) {
+                    lineProperty = lines[index + 3]
+                }
+                relations.push(lineProperty)
+            }
+        }
+
+        return relations
     }
 }
 

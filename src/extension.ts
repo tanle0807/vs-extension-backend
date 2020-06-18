@@ -3,7 +3,7 @@ import { FSProvider } from './FsProvider';
 import Handler from './Handler';
 import { ControllerActionProvider, ControllerAction, ConstructorFunction } from './provider/ControllerProvider';
 import { ServiceActionProvider, ServiceAction } from './provider/ServiceProvider';
-import { EntityActionProvider, EntityAction, EntityFunctionAction } from './provider/EntityProvider';
+import { EntityActionProvider, EntityAction, EntityFunctionAction, EXPORT_INTERFACE } from './provider/EntityProvider';
 import { EntityRequestActionProvider, EntityRequestAction } from './provider/EntityRequestProvider';
 
 
@@ -152,6 +152,10 @@ export function activate(context: vscode.ExtensionContext) {
 			providedCodeActionKinds: EntityActionProvider.providedCodeActionKinds
 		})
 	);
+
+	context.subscriptions.push(vscode.commands.registerCommand(EXPORT_INTERFACE, async (d, r, e) => {
+		entityProvider.createInterface(d, r, e)
+	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(EntityAction.AddProperty, async (e) => {
 		entityProvider.addProperty(e)
