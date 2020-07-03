@@ -463,7 +463,7 @@ ${line}
             case EntityAction.OneToOne:
                 injectString1 = `
                 @OneToOne(type => {{cap2}}, {{camel2}} => {{camel2}}.{{camel1}})
-                {{camel2}}: {{cap2}}[];
+                {{camel2}}: {{cap2}};
                 `
                 break;
         }
