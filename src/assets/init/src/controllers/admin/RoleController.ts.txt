@@ -48,7 +48,7 @@ export class RoleController {
         @HeaderParams("token") token: string,
     ) {
         const roles = await Role.find()
-        
+
         return res.sendOK(roles)
     }
 
@@ -124,12 +124,16 @@ export class RoleController {
         @Res() res: Response,
         @Req() req: Request,
         @PathParams("roleId") roleId: number,
-        @BodyParams("permissions", Permission) permissions: Permission[],
+        @BodyParams("permissionIds", Number) permissionIds: number[],
         @BodyParams("info") role: Role,
     ) {
         await Role.findOneOrThrowId(+roleId)
 
-        role.id = roleId
+        const permissions = await Permission.createQueryBuilder('permission')
+            .where(`id IN (:...permissionIds)`, { permissionIds })
+            .getMany()
+
+        role.id = +roleId
         role.permissions = permissions
         await role.save()
 

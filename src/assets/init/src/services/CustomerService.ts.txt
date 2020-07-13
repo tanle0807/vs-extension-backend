@@ -6,13 +6,32 @@ import { CoreService } from "../core/services/CoreService";
 import { BadRequest } from "ts-httpexceptions";
 import { Customer } from "../entity/Customer";
 
+interface IGetCustomers {
+    search: string
+    page: number
+    limit: number
+}
+
 @Service()
 export class CustomerService extends CoreService {
+
+    // =====================GET LIST=====================
+    public async findManyAndCount({ search, page, limit }: IGetCustomers) {
+        let where = ` CONCAT(customer.name, ' ', customer.phone) LIKE '%${search}%' AND customer.isDeleted = false`
+
+        const [customers, total] = await Customer.createQueryBuilder('customer')
+            .where(where)
+            .skip((page - 1) * limit)
+            .take(limit)
+            .orderBy('customer.id', 'DESC')
+            .getManyAndCount()
+        return [customers, total]
+    }
 
     // =====================LOGIN=====================
     public async login(phone: string, password: string): Promise<Customer> {
         const customer = await Customer.findOneOrThrowOption({
-            select: ['password'],
+            select: ['password', 'id'],
             where: { phone }
         })
 
@@ -52,6 +71,5 @@ export class CustomerService extends CoreService {
             throw new BadRequest(`${message} đã tồn tại`)
         }
     }
-
 
 } // END FILE

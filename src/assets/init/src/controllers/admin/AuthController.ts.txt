@@ -11,7 +11,6 @@ import { VerificationJWT } from '../../middleware/auth/VerificationJWT';
 import { StaffService } from '../../services/StaffService';
 import JWT, { AuthType } from '../../middleware/auth/strategy/JWT';
 import { Staff } from '../../entity/Staff';
-import { Password } from '../../util/password';
 
 
 @Controller("/admin/auth")
@@ -19,7 +18,6 @@ import { Password } from '../../util/password';
 export class AuthController {
     constructor(
         private staffService: StaffService,
-
     ) { }
 
 
@@ -37,6 +35,7 @@ export class AuthController {
     ) {
         const staff = await this.staffService.login(username, password);
         const token = JWT.sign({ id: staff.id, type: AuthType.Staff });
+
         return res.sendOK({ token })
     }
 
@@ -72,19 +71,7 @@ export class AuthController {
         @HeaderParams("token") token: string,
     ) {
         const { staff } = req;
-
-        // Get user with old password
-        const isValidPass = await staff.isValidPassword(oldPassword)
-        if (!isValidPass) {
-            return res.sendClientError('Mật khẩu cũ không đúng')
-        }
-
-        if (oldPassword == newPassword) {
-            return res.sendClientError('Mật khẩu mới không được trùng mật khẩu cũ');
-        }
-
-        staff.password = await Password.hash(newPassword)
-        await staff.save()
+        await this.staffService.changePassword({ staff, oldPassword, newPassword })
 
         return res.sendOK(staff, 'Cập nhật mật khẩu thành công');
     }
@@ -100,6 +87,7 @@ export class AuthController {
     ) {
         const { id } = req.staff;
         const permissions = await this.staffService.getPermission(id);
+        
         return res.sendOK(permissions);
     }
 

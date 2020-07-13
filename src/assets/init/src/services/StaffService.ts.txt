@@ -7,6 +7,12 @@ import { Permission } from "../entity/Permission";
 import { Password } from "../util/password";
 import { Role } from "../entity/Role";
 
+interface ChangePasswordParams {
+    staff: Staff
+    oldPassword: string
+    newPassword: string
+}
+
 @Service()
 export class StaffService extends CoreService {
 
@@ -67,6 +73,7 @@ export class StaffService extends CoreService {
         }
     }
 
+
     // =====================INIT=====================
     async initStaff(role: Role, name: string, username: string, password: string) {
         const staff = new Staff()
@@ -77,5 +84,27 @@ export class StaffService extends CoreService {
         await staff.save()
     }
 
+
+    // =====================CHANGE PASSWORD=====================
+    async changePassword({ staff, oldPassword, newPassword }: ChangePasswordParams) {
+        // Because can not access pass without select option
+        const staffWithPass = await Staff.findOneOrThrowOption({
+            select: ["password", "id"],
+            where: { id: staff.id }
+        })
+
+        // Get user with old password
+        const isValidPass = await staffWithPass.isValidPassword(oldPassword)
+        if (!isValidPass) {
+            throw new BadRequest('Mật khẩu cũ không đúng')
+        }
+
+        if (oldPassword == newPassword) {
+            throw new BadRequest('Mật khẩu mới không được trùng mật khẩu cũ');
+        }
+
+        staff.password = await Password.hash(newPassword)
+        await staff.save()
+    }
 
 } // END FILE
