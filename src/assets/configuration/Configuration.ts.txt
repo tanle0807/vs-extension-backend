@@ -34,4 +34,4 @@ export class Configuration extends CoreEntity {
     // METHODS
 
 
-}
+} // END FILE

@@ -18,23 +18,6 @@ export class ContentDefineController {
     ) { }
 
 
-    // =====================CREATE ITEM=====================
-    @Post('')
-    @UseAuth(VerificationJWT)
-    @Validator({
-        contentDefine: Joi.required(),
-    })
-    async create(
-        @HeaderParams("token") token: string,
-        @BodyParams("contentDefine") contentDefine: ContentDefine,
-        @Res() res: Response,
-        @Req() req: Request,
-    ) {
-        await contentDefine.save()
-        return res.sendOK(contentDefine)
-    }
-
-
     // =====================GET LIST=====================
     @Get('')
     @UseAuth(VerificationJWT)
@@ -45,7 +28,8 @@ export class ContentDefineController {
         @Res() res: Response,
         @Req() req: Request,
     ) {
-        let contentDefines = await ContentDefine.find()
+        const contentDefines = await ContentDefine.find()
+
         return res.sendOK(contentDefines)
     }
 
@@ -81,6 +65,7 @@ export class ContentDefineController {
         @Res() res: Response,
         @Req() req: Request,
     ) {
+        await ContentDefine.delete({})
         this.contentDefineService.initContentDefine(ContentDefineType.About, 'Giới thiệu', faker.random.words(100))
         this.contentDefineService.initContentDefine(ContentDefineType.Faq, 'Câu hỏi thường gặp', faker.random.words(100))
         this.contentDefineService.initContentDefine(ContentDefineType.Security, 'Bảo mật', faker.random.words(100))

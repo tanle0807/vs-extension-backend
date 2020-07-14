@@ -1,20 +1,20 @@
-// IMPORT LIBRARY
-import { Controller, Post, UseAuth, Req, Request, Res, Response, HeaderParams, BodyParams, Get, PathParams } from '@tsed/common';
+import { Controller, Post, UseAuth, Req, Request, Res, Response, HeaderParams, BodyParams, Get, PathParams, QueryParams } from '@tsed/common';
 import { Docs } from '@tsed/swagger';
 import Joi from '@hapi/joi';
+import { Like } from 'typeorm';
 
-
-// IMPORT CUSTOM
-import { ConfigurationService } from './../../services/ConfigurationService';
 import { VerificationJWT } from '../../middleware/auth/VerificationJWT';
 import { Validator } from '../../middleware/validator/Validator';
 import { Configuration, ConfigurationParams } from '../../entity/Configuration';
+import { ConfigurationService } from '../../services/ConfigurationService';
 
 
 @Controller("/admin/configuration")
 @Docs("docs_admin")
 export class ConfigurationController {
-    constructor(private configurationService: ConfigurationService) { }
+    constructor(
+        private configurationService: ConfigurationService
+    ) { }
 
 
     // =====================GET LIST=====================
@@ -26,63 +26,47 @@ export class ConfigurationController {
         @Req() req: Request,
         @Res() res: Response
     ) {
-        const configurations = await Configuration.find()
-        return res.sendOK(configurations)
-    }
+        const config = await Configuration.find({ order: { id: "DESC" } })
 
-
-    // =====================CREATE ITEM=====================
-    @Post('')
-    @UseAuth(VerificationJWT)
-    @Validator({
-        configuration: Joi.required(),
-    })
-    async create(
-        @Req() req: Request,
-        @Res() res: Response,
-        @HeaderParams("token") token: string,
-        @BodyParams("configuration") configuration: Configuration,
-    ) {
-        await configuration.save()
-        return res.sendOK(configuration)
-    }
-
-
-    // =====================UPDATE ITEM=====================
-    @Post('/:configurationId/update')
-    @UseAuth(VerificationJWT)
-    @Validator({
-        configuration: Joi.required(),
-        configurationId: Joi.number().required()
-    })
-    async update(
-        @Req() req: Request,
-        @Res() res: Response,
-        @HeaderParams("token") token: string,
-        @BodyParams("configuration") configuration: Configuration,
-        @PathParams("configurationId") configurationId: number,
-    ) {
-        await Configuration.findOneOrThrowId(configurationId)
-        configuration.id = +configurationId
-        await configuration.save()
-
-        return res.sendOK(configuration)
+        return res.sendOK(config)
     }
 
 
     // =====================INIT=====================
     @Post('/init')
     @UseAuth(VerificationJWT)
-    @Validator({})
     async init(
         @Req() req: Request,
         @Res() res: Response,
         @HeaderParams("token") token: string,
     ) {
-        this.configurationService.initParam(ConfigurationParams.MinPrice, '10000')
-        
-        return res.sendOK({}, "Init success")
+        await Configuration.delete({})
+        await this.configurationService.init(ConfigurationParams.CommissionTransport, 10, 'Chiết khấu tài xế phải trả')
+        await this.configurationService.init(ConfigurationParams.DistanceFindDriver, 10, 'Phạm vi bán kính để tìm tài xế xung quanh')
+        await this.configurationService.init(ConfigurationParams.MinDriverBalance, 10000, 'Tài khoản tài xế cần tối thiểu')
+        return res.sendOK({}, 'Init success')
     }
 
+
+    // =====================UPDATE ITEM=====================
+    @Post('/:configId/update')
+    @UseAuth(VerificationJWT)
+    @Validator({
+        config: Joi.required(),
+        configId: Joi.number().required()
+    })
+    async update(
+        @Req() req: Request,
+        @Res() res: Response,
+        @HeaderParams("token") token: string,
+        @BodyParams("config") config: Configuration,
+        @PathParams("configId") configId: number,
+    ) {
+        await Configuration.findOneOrThrowId(+configId)
+        config.id = +configId
+        await config.save()
+
+        return res.sendOK(config)
+    }
 
 } // END FILE
