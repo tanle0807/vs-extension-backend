@@ -755,7 +755,7 @@ ${line}
                 }
                 lineProperty = lineProperty.replace(':', '').replace(';', '').replace('[]', '')
 
-                if (nameExcept && lineProperty.includes(nameExcept)) continue
+                if (nameExcept && lineProperty == nameExcept) continue
 
                 const words = lineProperty.split(' ').filter(Boolean)
                 if (words.length > 1) {
