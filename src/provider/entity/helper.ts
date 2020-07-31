@@ -1,14 +1,25 @@
 import * as vscode from 'vscode';
 import { FSProvider } from '../../FsProvider';
+import { getWordBetweenSpace, getFullTextType } from '../../util';
 
-export function getEntityFromFunction(document: vscode.TextDocument, range: vscode.Range) {
+export function getEntityFromFunction(document: vscode.TextDocument, range: vscode.Range, isQuery: boolean = false) {
     const start = range.start;
     const line = document.lineAt(start.line);
-    const entities = line.text.match(/\s[A-Z][A-z]+/)
-    if (!entities?.length) return ''
 
-    const entity = entities[0].replace(' ', '').replace('.', '')
-    return entity
+    if (!isQuery) {
+        const entities = line.text.match(/\s[A-Z][A-z]+/)
+        if (entities && entities.length) {
+            const entity = entities[0].replace(' ', '').replace('.', '')
+            return { text: entity, lastIndex: 0 }
+        }
+        return { text: "", lastIndex: 0 }
+    } else {
+        const { text, lastIndex } = getWordBetweenSpace(line.text, range.start.character)
+        if (!text) return { text: "", lastIndex: 0 }
+
+        const entityFullText = getFullTextType(text)
+        return { text: entityFullText.classifyCase, lastIndex }
+    }
 }
 
 

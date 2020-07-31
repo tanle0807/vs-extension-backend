@@ -53,7 +53,9 @@ function createInsertBuilderRelation(
 export async function insertBuilderRelation(typeFunc: EntityAction, document: vscode.TextDocument, range: vscode.Range) {
     const edit = new vscode.WorkspaceEdit();
 
-    const entity = getEntityFromFunction(document, range)
+    const entityObj = getEntityFromFunction(document, range)
+    const entity = entityObj.text
+
     if (!entity) return vscode.window.showInformationMessage('Can not get entity')
 
     const relations = getRelationsEntity(entity)

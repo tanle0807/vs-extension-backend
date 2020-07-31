@@ -1,15 +1,15 @@
 import * as vscode from 'vscode';
 import Handler from './Handler';
-import { ControllerActionProvider, ControllerAction, ConstructorFunction } from './provider/ControllerProvider';
-import { ServiceActionProvider, ServiceAction } from './provider/ServiceProvider';
+import { ControllerActionProvider, ControllerAction, ConstructorFunction } from './provider/controller/ControllerProvider';
+import { ServiceActionProvider, ServiceAction } from './provider/service/ServiceProvider';
 import { EntityActionProvider } from './provider/entity/EntityProvider';
-import { EntityRequestActionProvider, EntityRequestAction } from './provider/EntityRequestProvider';
+import { EntityRequestActionProvider, EntityRequestAction } from './provider/entity-request/EntityRequestProvider';
 import { EntityAction } from './provider/entity/constant';
 import { addProperty } from './provider/entity/handleProperty';
 import { insertEntityAction } from './provider/entity/handleRelation';
 import { insertBuilderRelation } from './provider/entity/handleBuilder';
 import { createInterface } from './provider/entity/handleEntity';
-import { insertEntityFunction, insertQueryBuilder, insertFindOneOrThrow } from './provider/entity/handleFunction';
+import { insertEntityFunction, insertQueryBuilder, insertFindOneOrThrow, insertPropertiesToQuery } from './provider/entity/handleFunction';
 
 
 export enum BMDCommand {
@@ -236,6 +236,11 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand(
 		EntityAction.FindOneOrThrowID,
 		async (e, r) => insertFindOneOrThrow(EntityAction.FindOneOrThrowID, e, r)
+	));
+
+	context.subscriptions.push(vscode.commands.registerCommand(
+		EntityAction.AddPropertyToQuery,
+		async (e, r, l) => insertPropertiesToQuery(e, r, l)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(

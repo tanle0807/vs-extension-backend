@@ -24,6 +24,20 @@ export function createAddRelationFunctionAction(
             ...entityActions
         ];
     }
+
+    if (isQueryString(document, range)) {
+        const {
+            entityActions,
+            exportInterface,
+            propertyActions
+        } = createEntityActions(document, range, true)
+
+        return [
+            exportInterface,
+            ...propertyActions,
+            ...entityActions
+        ];
+    }
     return []
 }
 
@@ -31,6 +45,12 @@ function isEntityFunction(document: vscode.TextDocument, range: vscode.Range) {
     const start = range.start;
     const line = document.lineAt(start.line);
     return line.text.includes('find')
+}
+
+function isQueryString(document: vscode.TextDocument, range: vscode.Range) {
+    const start = range.start;
+    const line = document.lineAt(start.line);
+    return line.text.includes('where') || (line.text.includes('AND'))
 }
 
 function insertRelations(
@@ -52,7 +72,9 @@ function insertRelations(
 export async function insertEntityFunction(typeFunc: EntityAction, document: vscode.TextDocument, range: vscode.Range) {
     const edit = new vscode.WorkspaceEdit();
 
-    const entity = getEntityFromFunction(document, range)
+    const entityObj = getEntityFromFunction(document, range)
+    const entity = entityObj.text
+
     if (!entity) return vscode.window.showInformationMessage('Can not get entity')
 
     const relations = getRelationsEntity(entity)
@@ -191,6 +213,7 @@ export function createAddFunctionAction(
             ...entityActions
         ];
     }
+
     return []
 }
 
@@ -252,7 +275,9 @@ function createEntityFunction(document: vscode.TextDocument, range: vscode.Range
 export async function insertQueryBuilder(typeFunc: EntityAction, document: vscode.TextDocument, range: vscode.Range) {
     const edit = new vscode.WorkspaceEdit();
 
-    const entity = getEntityFromFunction(document, range)
+    const entityObj = getEntityFromFunction(document, range)
+    const entity = entityObj.text
+
     if (!entity) return vscode.window.showInformationMessage('Can not get entity')
 
     const fullText = getFullTextType(entity)
@@ -281,7 +306,9 @@ export async function insertQueryBuilder(typeFunc: EntityAction, document: vscod
 export async function insertFindOneOrThrow(typeFunc: EntityAction, document: vscode.TextDocument, range: vscode.Range) {
     const edit = new vscode.WorkspaceEdit();
 
-    const entity = getEntityFromFunction(document, range)
+    const entityObj = getEntityFromFunction(document, range)
+    const entity = entityObj.text
+
     if (!entity) return vscode.window.showInformationMessage('Can not get entity')
 
     const fullText = getFullTextType(entity)
@@ -297,6 +324,49 @@ export async function insertFindOneOrThrow(typeFunc: EntityAction, document: vsc
     const line = document.lineAt(start.line)
 
     edit.insert(document.uri, new vscode.Position(line.lineNumber, line.text.length + 1), template);
+
+    vscode.workspace.applyEdit(edit)
+}
+
+
+export function createGetPropertiesAction(
+    document: vscode.TextDocument, range: vscode.Range
+) {
+    if (isEntityFunction(document, range)) {
+        const {
+            entityActions,
+            exportInterface,
+            propertyActions
+        } = createEntityActions(document, range)
+
+        const insertRelation = insertRelations(document, range)
+
+        return [
+            insertRelation,
+            exportInterface,
+            ...propertyActions,
+            ...entityActions
+        ];
+    }
+    return []
+}
+
+export async function insertPropertiesToQuery(document: vscode.TextDocument, range: vscode.Range, lastIndex: number) {
+    const edit = new vscode.WorkspaceEdit();
+
+    const entityObj = getEntityFromFunction(document, range)
+    const entity = entityObj.text
+
+    if (!entity) return vscode.window.showInformationMessage('Can not get entity')
+
+    const fullText = getFullTextType(entity)
+
+    let template = `title`
+
+    const start = range.start;
+    const line = document.lineAt(start.line)
+
+    edit.insert(document.uri, new vscode.Position(line.lineNumber, lastIndex), template);
 
     vscode.workspace.applyEdit(edit)
 }

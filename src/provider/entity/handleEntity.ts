@@ -4,9 +4,10 @@ import { EntityAction } from './constant';
 import { FSProvider } from '../../FsProvider';
 
 export function createEntityActions(
-    document: vscode.TextDocument, range: vscode.Range
+    document: vscode.TextDocument, range: vscode.Range, isQuery: boolean = false
 ) {
-    const entity = getEntityFromFunction(document, range)
+    const { text: entity, lastIndex } = getEntityFromFunction(document, range, isQuery)
+
     const properties = getPropertiesEntity(entity)
     const entities = getRelationsEntityDeeper(entity).relations
     let propertyActions: vscode.CodeAction[] = []
@@ -15,15 +16,37 @@ export function createEntityActions(
 
     if (properties) {
         propertyActions = properties.map(p => {
-            const entity = new vscode.CodeAction(p, vscode.CodeActionKind.QuickFix);
-            return entity
+            const action = new vscode.CodeAction(
+                p,
+                vscode.CodeActionKind.QuickFix
+            )
+
+            action.command = {
+                command: EntityAction.AddPropertyToQuery,
+                title: p,
+                tooltip: EntityAction.AddPropertyToQuery,
+                arguments: [document, range, lastIndex]
+            };
+
+            return action
         })
     }
 
     if (entities) {
         entityActions = entities.map(e => {
-            const entity = new vscode.CodeAction(e, vscode.CodeActionKind.QuickFix);
-            return entity
+            const action = new vscode.CodeAction(
+                e,
+                vscode.CodeActionKind.QuickFix
+            )
+
+            action.command = {
+                command: EntityAction.AddPropertyToQuery,
+                title: e,
+                tooltip: EntityAction.AddPropertyToQuery,
+                arguments: [document, range, lastIndex]
+            };
+
+            return action
         })
     }
 

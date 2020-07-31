@@ -45,6 +45,8 @@ export class EntityActionProvider implements vscode.CodeActionProvider {
         if (addBuilderRelationAction && addBuilderRelationAction.length)
             return addBuilderRelationAction
 
+        // 
+        // const getPropertiesEntity = 
         return []
     }
 

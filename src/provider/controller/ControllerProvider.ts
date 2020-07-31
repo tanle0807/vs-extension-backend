@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { getFullTextType } from '../util';
-import { FSProvider } from '../FsProvider';
+import { getFullTextType } from '../../util';
+import { FSProvider } from '../../FsProvider';
 
 export enum ControllerAction {
     GetListPagination = 'BMD: Get list pagination',
@@ -82,12 +82,6 @@ export class ControllerActionProvider implements vscode.CodeActionProvider {
         const start = range.start;
         const line = document.lineAt(start.line);
         return line.text.includes('constructor')
-    }
-
-    private isQueryBuilder(document: vscode.TextDocument, range: vscode.Range) {
-        const start = range.start;
-        const line = document.lineAt(start.line);
-        return line.text.includes('createQueryBuilder')
     }
 
 

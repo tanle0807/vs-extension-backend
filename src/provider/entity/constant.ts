@@ -9,6 +9,7 @@ export enum EntityAction {
     FindOneOrThrowID = 'BMD: Find one or throw ID',
     CreateQueryBuilder = 'BMD: Create query builder',
     AddBuilderRelation = 'BMD: Add relation builder',
+    AddPropertyToQuery = 'BMD: Add properties to query string',
 }
 
 export enum PropertyType {
