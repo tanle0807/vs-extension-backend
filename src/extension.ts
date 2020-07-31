@@ -240,7 +240,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		EntityAction.AddPropertyToQuery,
-		async (e, r, l) => insertPropertiesToQuery(e, r, l)
+		async (e, r, l, p) => insertPropertiesToQuery(e, r, l, p)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(

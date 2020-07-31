@@ -25,7 +25,7 @@ export function createEntityActions(
                 command: EntityAction.AddPropertyToQuery,
                 title: p,
                 tooltip: EntityAction.AddPropertyToQuery,
-                arguments: [document, range, lastIndex]
+                arguments: [document, range, lastIndex, p]
             };
 
             return action
@@ -43,7 +43,7 @@ export function createEntityActions(
                 command: EntityAction.AddPropertyToQuery,
                 title: e,
                 tooltip: EntityAction.AddPropertyToQuery,
-                arguments: [document, range, lastIndex]
+                arguments: [document, range, lastIndex, e]
             };
 
             return action

@@ -90,15 +90,11 @@ export function getLastFolderFromPath(path: string): string {
 }
 
 export function getWordBetweenSpace(line: string, indexSelected: number) {
-    console.log('indexSelected:', indexSelected)
-    console.log('line:', line)
     let text = ''
     let lastIndex = indexSelected - 1
-    console.log('lastIndex:', lastIndex)
     for (let index = indexSelected - 1; index > 0; index--) {
         const char = line[index];
-        console.log('char truoc:', char)
-        if (char != " ") {
+        if (char != " " && char != "`") {
             text = char + text
         } else {
             break
@@ -107,11 +103,9 @@ export function getWordBetweenSpace(line: string, indexSelected: number) {
 
     for (let index = indexSelected; index < line.length; index++) {
         const char = line[index]
-        console.log('char: sau', char)
         if (char != " " && char != "." && char != "`") {
             text += char
             lastIndex = index
-            console.log('lastIndex:', lastIndex)
         } else {
             break
         }

@@ -351,7 +351,7 @@ export function createGetPropertiesAction(
     return []
 }
 
-export async function insertPropertiesToQuery(document: vscode.TextDocument, range: vscode.Range, lastIndex: number) {
+export async function insertPropertiesToQuery(document: vscode.TextDocument, range: vscode.Range, lastIndex: number, property: string) {
     const edit = new vscode.WorkspaceEdit();
 
     const entityObj = getEntityFromFunction(document, range)
@@ -361,12 +361,10 @@ export async function insertPropertiesToQuery(document: vscode.TextDocument, ran
 
     const fullText = getFullTextType(entity)
 
-    let template = `title`
-
     const start = range.start;
     const line = document.lineAt(start.line)
 
-    edit.insert(document.uri, new vscode.Position(line.lineNumber, lastIndex), template);
+    edit.insert(document.uri, new vscode.Position(line.lineNumber, lastIndex + 1), `.${property}`);
 
     vscode.workspace.applyEdit(edit)
 }
