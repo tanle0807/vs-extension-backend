@@ -1,6 +1,6 @@
-import { FSProvider } from '../../fsProvider';
+import { FSProvider } from '../../lib/FsProvider';
 import * as vscode from 'vscode';
-import { getFullTextType } from '../../util';
+import { getFullTextType } from '../../lib/util';
 
 export enum ServiceAction {
     GetLast30 = 'BMD: Get last 30',

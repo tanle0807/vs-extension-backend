@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { EntityAction } from './constant';
 import { createEntityActions } from './handleEntity';
 import { getEntityFromFunction, getRelationsEntity } from './helper';
-import { getFullTextType } from '../../util';
+import { getFullTextType } from '../../lib/util';
 
 export function createBuilderAction(
     document: vscode.TextDocument, range: vscode.Range

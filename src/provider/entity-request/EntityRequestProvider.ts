@@ -1,6 +1,6 @@
-import { FSProvider } from '../../FsProvider';
+import { FSProvider } from '../../lib/FsProvider';
 import * as vscode from 'vscode';
-import { getFullTextType, toLowerCaseFirstLetter } from '../../util';
+import { getFullTextType, toLowerCaseFirstLetter } from '../../lib/util';
 
 export enum EntityRequestAction {
     AddProperty = 'BMD: Add property entity-request',

@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { EntityAction } from './constant';
-import { FSProvider } from '../../FsProvider';
+import { FSProvider } from '../../lib/FsProvider';
 import { createEntityActions } from './handleEntity';
 import { getEntityFromFunction, getRelationsEntity } from './helper';
-import { getFullTextType } from '../../util';
+import { getFullTextType } from '../../lib/util';
 
 export function createAddRelationFunctionAction(
     document: vscode.TextDocument, range: vscode.Range

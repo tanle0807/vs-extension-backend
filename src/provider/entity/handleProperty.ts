@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { EntityAction, PropertyType } from './constant';
-import { getFullTextType } from '../../util';
+import { getFullTextType } from '../../lib/util';
 
 export function createPropertyAction(document: vscode.TextDocument, range: vscode.Range) {
     if (isEntityProperties(document, range)) {

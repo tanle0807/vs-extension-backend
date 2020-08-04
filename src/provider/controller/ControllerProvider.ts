@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { getFullTextType } from '../../util';
-import { FSProvider } from '../../FsProvider';
+import { getFullTextType } from '../../lib/util';
+import { FSProvider } from '../../lib/FsProvider';
 
 export enum ControllerAction {
     GetListPagination = 'BMD: Get list pagination',

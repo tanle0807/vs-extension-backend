@@ -1,6 +1,6 @@
-import { FSProvider } from '../../FsProvider';
+import { FSProvider } from '../../lib/FsProvider';
 import * as vscode from 'vscode';
-import { getFullTextType } from '../../util';
+import { getFullTextType } from '../../lib/util';
 import { EntityAction, PropertyType } from './constant';
 import { createPropertyAction } from './handleProperty';
 import { createRelationAction } from './handleRelation';

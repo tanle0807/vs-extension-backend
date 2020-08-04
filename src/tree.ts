@@ -31,22 +31,18 @@ export class DepNodeProvider implements vscode.TreeDataProvider<any> {
 
     getChildren(element?: Dependency): Thenable<Dependency[]> {
         const commands = [
-            BMDCommand.Init,
-            BMDCommand.AddModuleConfiguration,
-            BMDCommand.AddModuleContentDefine,
-            BMDCommand.CreateController,
-            BMDCommand.CreateControllerResource,
-            BMDCommand.CreateEntity,
-            BMDCommand.CreateEntityRequest,
-            BMDCommand.CreateService,
+            { id: BMDCommand.Init, title: 'BMD: Init Project' },
+            { id: BMDCommand.AddModuleConfiguration, title: 'BMD: Add Module Configuration' },
+            { id: BMDCommand.AddModuleContentDefine, title: 'BMD: Add Module Content Define' },
+            { id: BMDCommand.CreateController, title: 'BMD: New Controller' },
+            { id: BMDCommand.CreateControllerResource, title: 'BMD: New Controller Resource' },
+            { id: BMDCommand.CreateEntity, title: 'BMD: New Entity' },
+            { id: BMDCommand.CreateEntityRequest, title: 'BMD: New Entity Request' },
+            { id: BMDCommand.CreateService, title: 'BMD: New Service' },
         ]
 
-        const toDep = (command: string): Dependency => {
-            return new Dependency(command, '', vscode.TreeItemCollapsibleState.None, {
-                command,
-                title: command,
-                tooltip: command,
-            }, command);
+        const toDep = (command: any): Dependency => {
+            return new Dependency(command.title, vscode.TreeItemCollapsibleState.None, undefined, command.id);
         };
 
         const commandTree = commands.map(c => toDep(c))
@@ -57,50 +53,49 @@ export class DepNodeProvider implements vscode.TreeDataProvider<any> {
 	/**
 	 * Given the path to package.json, read all its dependencies and devDependencies.
 	 */
-    private getDepsInPackageJson(packageJsonPath: string): Dependency[] {
-        if (this.pathExists(packageJsonPath)) {
-            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    // private getDepsInPackageJson(packageJsonPath: string): Dependency[] {
+    //     if (this.pathExists(packageJsonPath)) {
+    //         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-            const toDep = (moduleName: string, version: string): Dependency => {
-                if (this.pathExists(path.join(this.workspaceRoot, 'node_modules', moduleName))) {
-                    return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.Collapsed);
-                } else {
-                    return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.None, {
-                        command: 'extension.openPackageOnNpm',
-                        title: '',
-                        arguments: [moduleName]
-                    });
-                }
-            };
+    //         const toDep = (moduleName: string, version: string): Dependency => {
+    //             if (this.pathExists(path.join(this.workspaceRoot, 'node_modules', moduleName))) {
+    //                 return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.Collapsed);
+    //             } else {
+    //                 return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.None, {
+    //                     command: 'extension.openPackageOnNpm',
+    //                     title: '',
+    //                     arguments: [moduleName]
+    //                 });
+    //             }
+    //         };
 
-            const deps = packageJson.dependencies
-                ? Object.keys(packageJson.dependencies).map(dep => toDep(dep, packageJson.dependencies[dep]))
-                : [];
-            const devDeps = packageJson.devDependencies
-                ? Object.keys(packageJson.devDependencies).map(dep => toDep(dep, packageJson.devDependencies[dep]))
-                : [];
-            return deps.concat(devDeps);
-        } else {
-            return [];
-        }
-    }
+    //         const deps = packageJson.dependencies
+    //             ? Object.keys(packageJson.dependencies).map(dep => toDep(dep, packageJson.dependencies[dep]))
+    //             : [];
+    //         const devDeps = packageJson.devDependencies
+    //             ? Object.keys(packageJson.devDependencies).map(dep => toDep(dep, packageJson.devDependencies[dep]))
+    //             : [];
+    //         return deps.concat(devDeps);
+    //     } else {
+    //         return [];
+    //     }
+    // }
 
-    private pathExists(p: string): boolean {
-        try {
-            fs.accessSync(p);
-        } catch (err) {
-            return false;
-        }
+    // private pathExists(p: string): boolean {
+    //     try {
+    //         fs.accessSync(p);
+    //     } catch (err) {
+    //         return false;
+    //     }
 
-        return true;
-    }
+    //     return true;
+    // }
 }
 
 export class Dependency extends vscode.TreeItem {
 
     constructor(
         public readonly label: string,
-        private version: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly command?: vscode.Command,
         public readonly context?: string
@@ -109,16 +104,12 @@ export class Dependency extends vscode.TreeItem {
     }
 
     get tooltip(): string {
-        return `${this.label}-${this.version}`;
-    }
-
-    get description(): string {
-        return this.version;
+        return `${this.label}`;
     }
 
     iconPath = {
-        light: path.join(__filename, '..', '..', 'media', 'test.svg'),
-        dark: path.join(__filename, '..', '..', 'media', 'test.svg')
+        light: path.join(__filename, '..', '..', 'media', 'light', 'infinite.svg'),
+        dark: path.join(__filename, '..', '..', 'media', 'dark', 'infinite.svg')
     };
 
     contextValue = this.context;

@@ -23,35 +23,66 @@
 			{
 				"command": "bmdextension.init",
 				"title": "BMD: Init Project",
-				"icon": "media/icon.svg"
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			},
 			{
 				"command": "bmdextension.createControllerResource",
-				"title": "BMD: New Controller Resource"
+				"title": "BMD: New Controller Resource",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			},
 			{
 				"command": "bmdextension.createController",
-				"title": "BMD: New Controller"
+				"title": "BMD: New Controller",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			},
 			{
 				"command": "bmdextension.createService",
-				"title": "BMD: New Service"
+				"title": "BMD: New Service",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			},
 			{
 				"command": "bmdextension.createEntity",
-				"title": "BMD: New Entity"
+				"title": "BMD: New Entity",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			},
 			{
 				"command": "bmdextension.createEntityRequest",
-				"title": "BMD: New Entity Request"
+				"title": "BMD: New Entity Request",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			},
 			{
 				"command": "bmdextension.contentDefine",
-				"title": "BMD: Add Module Content Define"
+				"title": "BMD: Add Module Content Define",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			},
 			{
 				"command": "bmdextension.configuration",
-				"title": "BMD: Add Module Configuration"
+				"title": "BMD: Add Module Configuration",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			}
 		],
 		"menus": {
@@ -86,8 +117,42 @@
 				{
 					"when": "view == bmdextension && viewItem == bmdextension.init",
 					"group": "inline",
-					"command": "bmdextension.init",
-					"icon": "media/icon.svg"
+					"command": "bmdextension.init"
+				},
+				{
+					"when": "view == bmdextension && viewItem == bmdextension.createControllerResource",
+					"group": "inline",
+					"command": "bmdextension.createControllerResource"
+				},
+				{
+					"when": "view == bmdextension && viewItem == bmdextension.createController",
+					"group": "inline",
+					"command": "bmdextension.createController"
+				},
+				{
+					"when": "view == bmdextension && viewItem == bmdextension.createService",
+					"group": "inline",
+					"command": "bmdextension.createService"
+				},
+				{
+					"when": "view == bmdextension && viewItem == bmdextension.createEntity",
+					"group": "inline",
+					"command": "bmdextension.createEntity"
+				},
+				{
+					"when": "view == bmdextension && viewItem == bmdextension.createEntityRequest",
+					"group": "inline",
+					"command": "bmdextension.createEntityRequest"
+				},
+				{
+					"when": "view == bmdextension && viewItem == bmdextension.contentDefine",
+					"group": "inline",
+					"command": "bmdextension.contentDefine"
+				},
+				{
+					"when": "view == bmdextension && viewItem == bmdextension.configuration",
+					"group": "inline",
+					"command": "bmdextension.configuration"
 				}
 			]
 		},
@@ -96,7 +161,7 @@
 				{
 					"id": "bmdPackage",
 					"title": "BMD Package",
-					"icon": "media/icon.svg"
+					"icon": "media/dark/logo.svg"
 				}
 			]
 		},
@@ -105,7 +170,7 @@
 				{
 					"id": "bmdextension",
 					"name": "BMD COMMAND",
-					"icon": "media/icon.svg"
+					"icon": "media/dark/bmd.svg"
 				},
 				{
 					"id": "deploy",
