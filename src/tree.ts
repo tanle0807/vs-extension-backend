@@ -46,7 +46,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<any> {
                 command,
                 title: command,
                 tooltip: command,
-            });
+            }, command);
         };
 
         const commandTree = commands.map(c => toDep(c))
@@ -102,9 +102,10 @@ export class Dependency extends vscode.TreeItem {
         public readonly label: string,
         private version: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly command?: vscode.Command
+        public readonly command?: vscode.Command,
+        public readonly context?: string
     ) {
-        super(label, collapsibleState);
+        super(label, collapsibleState)
     }
 
     get tooltip(): string {
@@ -120,6 +121,6 @@ export class Dependency extends vscode.TreeItem {
         dark: path.join(__filename, '..', '..', 'media', 'test.svg')
     };
 
-    contextValue = 'dependency';
+    contextValue = this.context;
 
 }

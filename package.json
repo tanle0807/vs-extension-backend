@@ -23,7 +23,7 @@
 			{
 				"command": "bmdextension.init",
 				"title": "BMD: Init Project",
-				"group": "inline"
+				"icon": "media/icon.svg"
 			},
 			{
 				"command": "bmdextension.createControllerResource",
@@ -84,25 +84,24 @@
 			],
 			"view/item/context": [
 				{
+					"when": "view == bmdextension && viewItem == bmdextension.init",
+					"group": "inline",
 					"command": "bmdextension.init",
-					"group": "inline"
-				},
-				{
-					"command": "nodeDependencies.deleteEntry"
+					"icon": "media/icon.svg"
 				}
 			]
 		},
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "bmd-package",
+					"id": "bmdPackage",
 					"title": "BMD Package",
 					"icon": "media/icon.svg"
 				}
 			]
 		},
 		"views": {
-			"bmd-package": [
+			"bmdPackage": [
 				{
 					"id": "bmdextension",
 					"name": "BMD COMMAND",
