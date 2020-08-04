@@ -1,6 +1,6 @@
-import { FSProvider } from "../lib/FsProvider"
+import { FSProvider } from "../FsProvider"
 import * as vscode from 'vscode';
-import { getFullTextType, getLastFolderFromPath, words, toSnakeCase, toUpperCaseFirstLetter } from "../lib/util";
+import { getFullTextType, getLastFolderFromPath, words, toSnakeCase, toUpperCaseFirstLetter } from "../util";
 
 enum Confirmation {
     Yes = 'YES',

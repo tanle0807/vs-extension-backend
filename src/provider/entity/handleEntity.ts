@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { getEntityFromFunction, getPropertiesEntity, getRelationsEntityDeeper } from './helper';
 import { EntityAction } from './constant';
-import { FSProvider } from '../../lib/FsProvider';
+import { FSProvider } from '../../FsProvider';
 
 export function createEntityActions(
     document: vscode.TextDocument, range: vscode.Range, isQuery: boolean = false

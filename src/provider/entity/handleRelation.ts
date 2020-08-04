@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { EntityAction, PropertyType } from './constant';
-import { getFullTextType } from '../../lib/util';
-import { FSProvider } from '../../lib/FsProvider';
+import { getFullTextType } from '../../util';
+import { FSProvider } from '../../FsProvider';
 
 export function createRelationAction(document: vscode.TextDocument, range: vscode.Range) {
     if (isEntityRelations(document, range)) {

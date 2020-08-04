@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { FSProvider } from '../../lib/FsProvider';
-import { getWordBetweenSpace, getFullTextType } from '../../lib/util';
+import { FSProvider } from '../../FsProvider';
+import { getWordBetweenSpace, getFullTextType } from '../../util';
 
 export function getEntityFromFunction(document: vscode.TextDocument, range: vscode.Range, isQuery: boolean = false) {
     const start = range.start;
