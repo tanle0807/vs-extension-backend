@@ -10,6 +10,7 @@ import { insertEntityAction } from './provider/entity/handleRelation';
 import { insertBuilderRelation } from './provider/entity/handleBuilder';
 import { createInterface } from './provider/entity/handleEntity';
 import { insertEntityFunction, insertQueryBuilder, insertFindOneOrThrow, insertPropertiesToQuery } from './provider/entity/handleFunction';
+import { DepNodeProvider } from './tree';
 
 
 export enum BMDCommand {
@@ -28,6 +29,13 @@ const serviceProvider = new ServiceActionProvider()
 const entityRequestProvider = new EntityRequestActionProvider()
 
 export function activate(context: vscode.ExtensionContext) {
+	const nodeDependenciesProvider = new DepNodeProvider(vscode.workspace.rootPath);
+	vscode.window.registerTreeDataProvider('bmdextension', nodeDependenciesProvider);
+	// vscode.commands.registerCommand('bmdextension.refreshEntry', () => nodeDependenciesProvider.refresh());
+	// vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
+	// vscode.commands.registerCommand('bmdextension.addEntry', () => vscode.window.showInformationMessage(`Successfully called add entry.`));
+	// vscode.commands.registerCommand('bmdextension.editEntry', (node: any) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
+	// vscode.commands.registerCommand('bmdextension.deleteEntry', (node: any) => vscode.window.showInformationMessage(`Successfully called delete entry on ${node.label}.`));
 
 	// INIT
 	context.subscriptions.push(vscode.commands.registerCommand(
@@ -43,7 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// 	vscode.window.showInformationMessage("Init project success");
 			// } else {
 			await Handler.initProject()
-			vscode.window.showInformationMessage("Init project success");
+			// vscode.window.showInformationMessage("Init project success");
 			// }
 		}
 	));
