@@ -4,13 +4,20 @@ import { ControllerActionProvider, ControllerAction, ConstructorFunction } from 
 import { ServiceActionProvider, ServiceAction } from './provider/service/ServiceProvider';
 import { EntityActionProvider } from './provider/entity/EntityProvider';
 import { EntityRequestActionProvider, EntityRequestAction } from './provider/entity-request/EntityRequestProvider';
-import { EntityAction } from './provider/entity/constant';
+import { EntityAction } from './constant';
 import { addProperty } from './provider/entity/handleProperty';
 import { insertEntityAction } from './provider/entity/handleRelation';
 import { insertBuilderRelation } from './provider/entity/handleBuilder';
 import { createInterface } from './provider/entity/handleEntity';
 import { insertEntityFunction, insertQueryBuilder, insertFindOneOrThrow, insertPropertiesToQuery } from './provider/entity/handleFunction';
 import { DepNodeProvider } from './tree';
+import { initProject } from './handler/initProject';
+import { addContentDefine } from './handler/contentDefine';
+import { addConfiguration } from './handler/configuration';
+import { createControllerResource, createControllerNormal } from './handler/createController';
+import { createService } from './handler/createService';
+import { createEntity } from './handler/createEntity';
+import { createEntityRequest } from './handler/createEntityRequest';
 
 
 export enum BMDCommand {
@@ -29,27 +36,15 @@ const serviceProvider = new ServiceActionProvider()
 const entityRequestProvider = new EntityRequestActionProvider()
 
 export function activate(context: vscode.ExtensionContext) {
-	const nodeDependenciesProvider = new DepNodeProvider(vscode.workspace.rootPath);
-	vscode.window.registerTreeDataProvider('bmdextension', nodeDependenciesProvider);
+	const bmdView = new DepNodeProvider(vscode.workspace.rootPath);
+	vscode.window.registerTreeDataProvider('bmdextension1', bmdView);
+	vscode.window.registerTreeDataProvider('bmdextension2', bmdView);
 	// vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
 
 	// INIT
 	context.subscriptions.push(vscode.commands.registerCommand(
 		BMDCommand.Init,
-		async () => {
-			// if (FSProvider.checkExistProject()) {
-			// 	vscode.window.showWarningMessage('Project is already exist.')
-
-			// 	const confirm = await vscode.window.showQuickPick([ConfirmationExistProject.Keep, ConfirmationExistProject.Replace])
-			// 	if (confirm != ConfirmationExistProject.Replace) return
-
-			// 	await Handler.initProject()
-			// 	vscode.window.showInformationMessage("Init project success");
-			// } else {
-			await Handler.initProject()
-			// vscode.window.showInformationMessage("Init project success");
-			// }
-		}
+		async () => await initProject()
 	));
 
 
@@ -58,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
 		BMDCommand.CreateControllerResource,
 		async (e) => {
 			const fsPath = e.fsPath
-			await Handler.createControllerResource(fsPath)
+			await createControllerResource(fsPath)
 		}
 	));
 
@@ -66,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 		BMDCommand.CreateController,
 		async (e) => {
 			const fsPath = e.fsPath
-			await Handler.createControllerNormal(fsPath)
+			await createControllerNormal(fsPath)
 		}
 	));
 
@@ -74,14 +69,14 @@ export function activate(context: vscode.ExtensionContext) {
 		BMDCommand.CreateService,
 		async (e) => {
 			const fsPath = e.fsPath
-			await Handler.createService(fsPath)
+			await createService(fsPath)
 		}
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		BMDCommand.CreateEntity, async (e) => {
 			const fsPath = e.fsPath
-			await Handler.createEntity(fsPath)
+			await createEntity(fsPath)
 		}
 	));
 
@@ -89,18 +84,18 @@ export function activate(context: vscode.ExtensionContext) {
 		BMDCommand.CreateEntityRequest,
 		async (e) => {
 			const fsPath = e.fsPath
-			await Handler.createEntityRequest(fsPath)
+			await createEntityRequest(fsPath)
 		}
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		BMDCommand.AddModuleContentDefine,
-		async () => await Handler.addContentDefine()
+		async () => await addContentDefine()
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		BMDCommand.AddModuleConfiguration,
-		async () => await Handler.addConfiguration()
+		async () => await addConfiguration()
 	));
 
 

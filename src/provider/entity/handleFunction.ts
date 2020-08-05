@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { EntityAction } from './constant';
+import { EntityAction } from '../../constant';
 import { FSProvider } from '../../FsProvider';
 import { createEntityActions } from './handleEntity';
 import { getEntityFromFunction, getRelationsEntity } from './helper';

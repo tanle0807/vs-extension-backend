@@ -22,3 +22,15 @@ export enum PropertyType {
     IsBlockColumn = 'IS BLOCK COLUMN',
     IsDeleteColumn = 'IS DELETE COLUMN'
 }
+
+export enum Confirmation {
+    Yes = 'YES',
+    No = 'NO'
+}
+
+export enum TypeRequest {
+    Insert = 'Insert',
+    Update = 'Update'
+}
+
+export const OTHER = 'OTHER'

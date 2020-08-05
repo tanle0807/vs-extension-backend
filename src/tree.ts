@@ -31,18 +31,56 @@ export class DepNodeProvider implements vscode.TreeDataProvider<any> {
 
     getChildren(element?: Dependency): Thenable<Dependency[]> {
         const commands = [
-            { id: BMDCommand.Init, title: 'BMD: Init Project' },
-            { id: BMDCommand.AddModuleConfiguration, title: 'BMD: Add Module Configuration' },
-            { id: BMDCommand.AddModuleContentDefine, title: 'BMD: Add Module Content Define' },
-            { id: BMDCommand.CreateController, title: 'BMD: New Controller' },
-            { id: BMDCommand.CreateControllerResource, title: 'BMD: New Controller Resource' },
-            { id: BMDCommand.CreateEntity, title: 'BMD: New Entity' },
-            { id: BMDCommand.CreateEntityRequest, title: 'BMD: New Entity Request' },
-            { id: BMDCommand.CreateService, title: 'BMD: New Service' },
+            {
+                id: BMDCommand.Init,
+                title: 'BMD: Init Project',
+                params: []
+            },
+            {
+                id: BMDCommand.AddModuleConfiguration,
+                title: 'BMD: Add Module Configuration',
+                params: []
+            },
+            {
+                id: BMDCommand.AddModuleContentDefine,
+                title: 'BMD: Add Module Content Define',
+                params: []
+            },
+            {
+                id: BMDCommand.CreateController,
+                title: 'BMD: New Controller',
+                params: []
+            },
+            {
+                id: BMDCommand.CreateControllerResource,
+                title: 'BMD: New Controller Resource',
+                params: []
+            },
+            {
+                id: BMDCommand.CreateEntity,
+                title: 'BMD: New Entity',
+                params: []
+            },
+            {
+                id: BMDCommand.CreateEntityRequest,
+                title: 'BMD: New Entity Request',
+                params: []
+            },
+            {
+                id: BMDCommand.CreateService,
+                title: 'BMD: New Service',
+                params: []
+            },
         ]
 
         const toDep = (command: any): Dependency => {
-            return new Dependency(command.title, vscode.TreeItemCollapsibleState.None, undefined, command.id);
+            let cmd = undefined
+
+            return new Dependency(
+                command.title,
+                vscode.TreeItemCollapsibleState.None,
+                cmd,
+                command.id);
         };
 
         const commandTree = commands.map(c => toDep(c))

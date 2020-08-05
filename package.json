@@ -115,42 +115,42 @@
 			],
 			"view/item/context": [
 				{
-					"when": "view == bmdextension && viewItem == bmdextension.init",
+					"when": "viewItem == bmdextension.init",
 					"group": "inline",
 					"command": "bmdextension.init"
 				},
 				{
-					"when": "view == bmdextension && viewItem == bmdextension.createControllerResource",
+					"when": "viewItem == bmdextension.createControllerResource",
 					"group": "inline",
 					"command": "bmdextension.createControllerResource"
 				},
 				{
-					"when": "view == bmdextension && viewItem == bmdextension.createController",
+					"when": "viewItem == bmdextension.createController",
 					"group": "inline",
 					"command": "bmdextension.createController"
 				},
 				{
-					"when": "view == bmdextension && viewItem == bmdextension.createService",
+					"when": "viewItem == bmdextension.createService",
 					"group": "inline",
 					"command": "bmdextension.createService"
 				},
 				{
-					"when": "view == bmdextension && viewItem == bmdextension.createEntity",
+					"when": "viewItem == bmdextension.createEntity",
 					"group": "inline",
 					"command": "bmdextension.createEntity"
 				},
 				{
-					"when": "view == bmdextension && viewItem == bmdextension.createEntityRequest",
+					"when": "viewItem == bmdextension.createEntityRequest",
 					"group": "inline",
 					"command": "bmdextension.createEntityRequest"
 				},
 				{
-					"when": "view == bmdextension && viewItem == bmdextension.contentDefine",
+					"when": "viewItem == bmdextension.contentDefine",
 					"group": "inline",
 					"command": "bmdextension.contentDefine"
 				},
 				{
-					"when": "view == bmdextension && viewItem == bmdextension.configuration",
+					"when": "viewItem == bmdextension.configuration",
 					"group": "inline",
 					"command": "bmdextension.configuration"
 				}
@@ -166,15 +166,26 @@
 			]
 		},
 		"views": {
-			"bmdPackage": [
+			"explorer": [
 				{
-					"id": "bmdextension",
-					"name": "BMD COMMAND",
+					"id": "bmdextension1",
+					"name": "BMD Command",
 					"icon": "media/dark/bmd.svg"
 				},
 				{
-					"id": "deploy",
-					"name": "DEPLOY"
+					"id": "deploy1",
+					"name": "Deploy"
+				}
+			],
+			"bmdPackage": [
+				{
+					"id": "bmdextension2",
+					"name": "BMD Command",
+					"icon": "media/dark/bmd.svg"
+				},
+				{
+					"id": "deploy2",
+					"name": "Deploy"
 				}
 			]
 		}

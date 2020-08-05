@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path'
 import fsExtra = require('fs-extra');
 import { replaceSymbolTemplate } from './util';
-const rootPath = vscode.workspace.rootPath as string
+export const ROOT_PATH = vscode.workspace.rootPath as string
 
 interface KeywordPair {
     regex: RegExp,
@@ -13,9 +13,9 @@ export class FSProvider {
 
     static checkExistProject(): boolean {
         vscode.window.showInformationMessage('check project')
-        const packageJson = path.join(rootPath, 'package.json');
-        const env = path.join(rootPath, '.env');
-        const srcFolder = path.join(rootPath, 'src');
+        const packageJson = path.join(ROOT_PATH, 'package.json');
+        const env = path.join(ROOT_PATH, '.env');
+        const srcFolder = path.join(ROOT_PATH, 'src');
         vscode.window.showInformationMessage('check project xong')
         return fsExtra.existsSync(packageJson) ||
             fsExtra.existsSync(env) ||
@@ -23,13 +23,13 @@ export class FSProvider {
     }
 
     static checkExist(distPath: string): boolean {
-        const file = path.join(rootPath, distPath);
+        const file = path.join(ROOT_PATH, distPath);
         return fsExtra.existsSync(file)
     }
 
     static copyFile(assetPathFrom: string, pathTo: string) {
         try {
-            const fullPath = path.join(rootPath, pathTo);
+            const fullPath = path.join(ROOT_PATH, pathTo);
             fsExtra.copy(__dirname + '/assets/' + assetPathFrom, fullPath)
         } catch (error) {
             console.log('Error write file:', error)
@@ -37,7 +37,7 @@ export class FSProvider {
     }
 
     static copyAndReplaceFile(assetPathFrom: string, pathTo: string, keywords: KeywordPair[]) {
-        const fullPath = path.join(rootPath, pathTo);
+        const fullPath = path.join(ROOT_PATH, pathTo);
 
         const buffer = fsExtra.readFileSync(__dirname + '/assets/' + assetPathFrom)
         let content = buffer.toString()
@@ -51,19 +51,33 @@ export class FSProvider {
     }
 
     static makeFolder(folderPath: string) {
-        const fullPath = path.join(rootPath, folderPath);
+        const fullPath = path.join(ROOT_PATH, folderPath);
         fsExtra.ensureDirSync(fullPath)
     }
 
     static getAllFileInFolder(folderPath: string) {
-        const fullPath = path.join(rootPath, folderPath);
+        const fullPath = path.join(ROOT_PATH, folderPath);
+        const files = fsExtra.readdirSync(fullPath)
+        return files.map(file => file = file.replace('.ts', ''))
+    }
+
+    static getAllFolderInFolder(folderPath: string) {
+        const fullPath = path.join(ROOT_PATH, folderPath);
         const files = fsExtra.readdirSync(fullPath)
         return files.map(file => file = file.replace('.ts', ''))
     }
 
     static getLinesDocumentInFile(folderPath: string) {
-        const fullPath = path.join(rootPath, folderPath);
+        const fullPath = path.join(ROOT_PATH, folderPath);
         const files = fsExtra.readFileSync(fullPath)
         return files.toString().split('\n') || []
+    }
+
+    static isValidStructure() {
+        return FSProvider.checkExist('src/Server.ts')
+    }
+
+    static getFullPath(pathStr: string) {
+        return path.join(ROOT_PATH, pathStr);
     }
 }

@@ -1,7 +1,7 @@
 import { FSProvider } from '../../FsProvider';
 import * as vscode from 'vscode';
 import { getFullTextType } from '../../util';
-import { EntityAction, PropertyType } from './constant';
+import { EntityAction, PropertyType } from '../../constant';
 import { createPropertyAction } from './handleProperty';
 import { createRelationAction } from './handleRelation';
 import { getRelationsEntityDeeper, getPropertiesEntity, getEntityFromFunction, getRelationsEntity } from './helper';
