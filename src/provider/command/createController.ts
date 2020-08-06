@@ -1,7 +1,7 @@
-import { FSProvider } from "../FsProvider"
+import { FSProvider } from "../../FsProvider"
 import * as vscode from 'vscode';
-import { getFullTextType, getLastFolderFromPath, words, toSnakeCase, toUpperCaseFirstLetter } from "../util";
-import { Confirmation, OTHER } from "../constant";
+import { getFullTextType, getLastFolderFromPath, words, toSnakeCase, toUpperCaseFirstLetter } from "../../util";
+import { Confirmation, OTHER } from "../../constant";
 import { Uri, commands } from "vscode";
 
 async function createController(fsPath: string, assetPath: string) {

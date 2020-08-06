@@ -1,7 +1,7 @@
-import { FSProvider } from "../FsProvider"
+import { FSProvider } from "../../FsProvider"
 import * as vscode from 'vscode';
-import { getFullTextType, getLastFolderFromPath, words, toSnakeCase, toUpperCaseFirstLetter } from "../util";
-import { Confirmation, OTHER } from "../constant";
+import { getFullTextType, getLastFolderFromPath, words, toSnakeCase, toUpperCaseFirstLetter } from "../../util";
+import { Confirmation, OTHER } from "../../constant";
 import { Uri, commands } from "vscode";
 
 export async function createService(fsPath: string) {

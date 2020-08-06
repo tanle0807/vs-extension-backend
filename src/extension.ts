@@ -10,17 +10,17 @@ import { insertBuilderRelation } from './provider/entity/handleBuilder';
 import { createInterface } from './provider/entity/handleEntity';
 import { insertEntityFunction, insertQueryBuilder, insertFindOneOrThrow, insertPropertiesToQuery } from './provider/entity/handleFunction';
 import { CommandProvider } from './provider/command/CommandProvider';
-import { initProject } from './handler/initProject';
-import { addContentDefine } from './handler/contentDefine';
-import { addConfiguration } from './handler/configuration';
-import { createControllerResource, createControllerNormal } from './handler/createController';
-import { createService } from './handler/createService';
-import { createEntity } from './handler/createEntity';
-import { createEntityRequest } from './handler/createEntityRequest';
+import { addConfiguration } from './provider/command/configuration';
 import { insertControllerFunc, ControllerAction } from './provider/controller/handleFunction';
 import { insertPrivateService, ConstructorFunction } from './provider/controller/handleConstructor';
 import { deployStaging, deployProduct } from './provider/deploy/handleDeploy';
 import { DeployProvider } from './provider/deploy/DeployProvider';
+import { createControllerResource, createControllerNormal } from './provider/command/createController';
+import { initProject } from './provider/command/initProject';
+import { createService } from './provider/command/createService';
+import { createEntity } from './provider/command/createEntity';
+import { createEntityRequest } from './provider/command/createEntityRequest';
+import { addContentDefine } from './provider/command/contentDefine';
 
 
 export enum BMDCommand {
