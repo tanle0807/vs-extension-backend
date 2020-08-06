@@ -22,7 +22,7 @@ export async function addContentDefine() {
             [Confirmation.No, Confirmation.Yes],
             { placeHolder: 'Module CONTENT DEFINE is already exist. You want to REPLACE?' }
         )
-        if (confirm == Confirmation.No) {
+        if (!confirm || confirm == Confirmation.No) {
             return vscode.window.showInformationMessage("Cancel: Add module CONTENT DEFINE.");
         } else {
             initFiles()

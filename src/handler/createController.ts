@@ -1,38 +1,47 @@
 import { FSProvider } from "../FsProvider"
 import * as vscode from 'vscode';
 import { getFullTextType, getLastFolderFromPath, words, toSnakeCase, toUpperCaseFirstLetter } from "../util";
-import { Confirmation } from "../constant";
+import { Confirmation, OTHER } from "../constant";
 import { Uri, commands } from "vscode";
 
 async function createController(fsPath: string, assetPath: string) {
+    console.log('fsPath:1', fsPath)
     if (!FSProvider.isValidStructure()) {
         return vscode.window.showInformationMessage("Cancel!. Wrong project's structure.");
     }
 
-    if (fsPath != undefined) {
-        if (fsPath.includes('controllers/')) {
-            return vscode.window.showErrorMessage("Please select subfolder in 'controllers'")
-        }
-    } else {
+    if (fsPath == undefined) {
         fsPath = 'src/controllers/'
+    }
+
+    if (!fsPath.includes('controllers/')) {
+        return vscode.window.showErrorMessage("Please select subfolder in 'controllers'")
     }
 
     let lastFolder = ''
     if (fsPath.endsWith('controllers/')) {
         const folders = FSProvider.getAllFolderInFolder('src/controllers/')
-        const entity = await vscode.window.showQuickPick(
+        const subfolder = await vscode.window.showQuickPick(
             [...folders],
             { placeHolder: "Please select subfolder!" }
         )
-        if (!entity) return vscode.window.showErrorMessage("Please select subfolder in 'controllers'")
-        lastFolder = entity
+        if (!subfolder) return vscode.window.showErrorMessage("Please select subfolder in 'controllers'")
+        lastFolder = subfolder
     } else {
         lastFolder = getLastFolderFromPath(fsPath)
     }
 
-    let controller = await vscode.window.showInputBox({ placeHolder: "Enter controller name: " })
-    if (!controller) {
-        return vscode.window.showInformationMessage("Cancel: add CONTROLLER. Do not input controller's name");
+    const entities = FSProvider.getAllFileInFolder('/src/entity')
+    const entitySelected = await vscode.window.showQuickPick([...entities, OTHER])
+    let controller = ''
+    if (entitySelected && entitySelected != OTHER) {
+        controller = entitySelected
+    } else {
+        let input = await vscode.window.showInputBox({ placeHolder: "Enter controller name: " })
+        if (!input)
+            return vscode.window.showInformationMessage("Cancel!. Do not input service name.");
+
+        controller = input.replace('service', '').replace('Service', '')
     }
 
     controller = controller.replace('controller', '').replace('Controller', '')
@@ -46,7 +55,7 @@ async function createController(fsPath: string, assetPath: string) {
             { placeHolder: "This file already exist in this folder. Do you want to replace it." }
         )
 
-        if (confirm == Confirmation.No) {
+        if (!confirm || confirm == Confirmation.No) {
             return vscode.window.showInformationMessage("Cancel: add CONTROLLER.");
         }
     }

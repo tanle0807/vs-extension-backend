@@ -38,7 +38,7 @@ export async function createService(fsPath: string) {
             [Confirmation.Yes, Confirmation.No],
             { placeHolder: "This file already exist in this folder. Do you want to replace it?" }
         )
-        if (confirm == Confirmation.No) {
+        if (!confirm || confirm == Confirmation.No) {
             return vscode.window.showInformationMessage("Cancel create service!.");
         }
     }

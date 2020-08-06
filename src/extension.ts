@@ -1,5 +1,4 @@
-import * as vscode from 'vscode';
-import Handler from './handler/Handler';
+import * as vscode from 'vscode'
 import { ControllerActionProvider, ControllerAction, ConstructorFunction } from './provider/controller/ControllerProvider';
 import { ServiceActionProvider, ServiceAction } from './provider/service/ServiceProvider';
 import { EntityActionProvider } from './provider/entity/EntityProvider';
