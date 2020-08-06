@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { ControllerActionProvider, ControllerAction, ConstructorFunction } from './provider/controller/ControllerProvider';
+import { ControllerActionProvider } from './provider/controller/ControllerProvider';
 import { ServiceActionProvider, ServiceAction } from './provider/service/ServiceProvider';
 import { EntityActionProvider } from './provider/entity/EntityProvider';
 import { EntityRequestActionProvider, EntityRequestAction } from './provider/entity-request/EntityRequestProvider';
@@ -9,7 +9,7 @@ import { insertEntityAction } from './provider/entity/handleRelation';
 import { insertBuilderRelation } from './provider/entity/handleBuilder';
 import { createInterface } from './provider/entity/handleEntity';
 import { insertEntityFunction, insertQueryBuilder, insertFindOneOrThrow, insertPropertiesToQuery } from './provider/entity/handleFunction';
-import { DepNodeProvider } from './tree';
+import { CommandProvider } from './provider/command/CommandProvider';
 import { initProject } from './handler/initProject';
 import { addContentDefine } from './handler/contentDefine';
 import { addConfiguration } from './handler/configuration';
@@ -17,6 +17,10 @@ import { createControllerResource, createControllerNormal } from './handler/crea
 import { createService } from './handler/createService';
 import { createEntity } from './handler/createEntity';
 import { createEntityRequest } from './handler/createEntityRequest';
+import { insertControllerFunc, ControllerAction } from './provider/controller/handleFunction';
+import { insertPrivateService, ConstructorFunction } from './provider/controller/handleConstructor';
+import { deployStaging, deployProduct } from './provider/deploy/handleDeploy';
+import { DeployProvider } from './provider/deploy/DeployProvider';
 
 
 export enum BMDCommand {
@@ -30,15 +34,24 @@ export enum BMDCommand {
 	AddModuleConfiguration = 'bmdextension.configuration',
 }
 
+export enum Deploy {
+	DeployStaging = 'bmdextension.deployStaging',
+	DeployProduction = 'bmdextension.deployProduct',
+	DeployNormal = 'bmdextension.deployNormal',
+}
+
 const controllerProvider = new ControllerActionProvider()
 const serviceProvider = new ServiceActionProvider()
 const entityRequestProvider = new EntityRequestActionProvider()
 
 export function activate(context: vscode.ExtensionContext) {
-	const bmdView = new DepNodeProvider(vscode.workspace.rootPath);
-	vscode.window.registerTreeDataProvider('bmdextension1', bmdView);
-	vscode.window.registerTreeDataProvider('bmdextension2', bmdView);
-	// vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
+	const bmdCommand = new CommandProvider(vscode.workspace.rootPath);
+	vscode.window.registerTreeDataProvider('bmdextension1', bmdCommand);
+	vscode.window.registerTreeDataProvider('bmdextension2', bmdCommand);
+
+	const deploy = new DeployProvider(vscode.workspace.rootPath)
+	vscode.window.registerTreeDataProvider('deploy1', deploy);
+	vscode.window.registerTreeDataProvider('deploy2', deploy);
 
 	// INIT
 	context.subscriptions.push(vscode.commands.registerCommand(
@@ -107,55 +120,47 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ControllerAction.GetListPagination,
-		async (e) => controllerProvider.insertControllerFunc(
-			ControllerAction.GetListPagination, e
-		)
+		async (e) => insertControllerFunc(ControllerAction.GetListPagination, e)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ControllerAction.GetListAll,
-		async (e) => controllerProvider.insertControllerFunc(ControllerAction.GetListAll, e)
+		async (e) => insertControllerFunc(ControllerAction.GetListAll, e)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ControllerAction.CreateItem,
-		async (e) => controllerProvider.insertControllerFunc(ControllerAction.CreateItem, e)
+		async (e) => insertControllerFunc(ControllerAction.CreateItem, e)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ControllerAction.UpdateItem,
-		async (e) => controllerProvider.insertControllerFunc(ControllerAction.UpdateItem, e)
+		async (e) => insertControllerFunc(ControllerAction.UpdateItem, e)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ControllerAction.CreateItemEntityRequest,
-		async (e) => controllerProvider.insertControllerFunc(
-			ControllerAction.CreateItemEntityRequest, e
-		)
+		async (e) => insertControllerFunc(ControllerAction.CreateItemEntityRequest, e)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ControllerAction.DeleteItemByRemove,
-		async (e) => controllerProvider.insertControllerFunc(
-			ControllerAction.DeleteItemByRemove, e
-		)
+		async (e) => insertControllerFunc(ControllerAction.DeleteItemByRemove, e)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ControllerAction.DeleteItemByBlock,
-		async (e) => controllerProvider.insertControllerFunc(ControllerAction.DeleteItemByBlock, e)
+		async (e) => insertControllerFunc(ControllerAction.DeleteItemByBlock, e)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ControllerAction.Upload,
-		async (e) => controllerProvider.insertControllerFunc(ControllerAction.Upload, e)
+		async (e) => insertControllerFunc(ControllerAction.Upload, e)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
 		ConstructorFunction.PrivateService,
-		async (e) => await controllerProvider.insertPrivateService(
-			ConstructorFunction.PrivateService, e
-		)
+		async (e) => await insertPrivateService(ConstructorFunction.PrivateService, e)
 	));
 
 
@@ -257,6 +262,17 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand(
 		EntityRequestAction.AddProperty,
 		async (e) => entityRequestProvider.addProperty(e)
+	));
+
+	// DEPLOY
+	context.subscriptions.push(vscode.commands.registerCommand(
+		Deploy.DeployStaging,
+		() => deployStaging()
+	));
+
+	context.subscriptions.push(vscode.commands.registerCommand(
+		Deploy.DeployProduction,
+		() => deployProduct()
 	));
 
 }

@@ -97,7 +97,10 @@ export async function addProperty(document: vscode.TextDocument) {
 }
 
 async function generateProperty(propertyType: PropertyType) {
-    const inputName = await vscode.window.showInputBox({ placeHolder: 'Enter property name: ' })
+    const inputName = await vscode.window.showInputBox({
+        placeHolder: 'Enter property name: ',
+        ignoreFocusOut: true
+    })
     if (!inputName) return ''
 
     const fullTextType = getFullTextType(inputName)

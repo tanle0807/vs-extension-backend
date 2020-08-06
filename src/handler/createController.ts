@@ -5,7 +5,6 @@ import { Confirmation, OTHER } from "../constant";
 import { Uri, commands } from "vscode";
 
 async function createController(fsPath: string, assetPath: string) {
-    console.log('fsPath:1', fsPath)
     if (!FSProvider.isValidStructure()) {
         return vscode.window.showInformationMessage("Cancel!. Wrong project's structure.");
     }
@@ -37,7 +36,10 @@ async function createController(fsPath: string, assetPath: string) {
     if (entitySelected && entitySelected != OTHER) {
         controller = entitySelected
     } else {
-        let input = await vscode.window.showInputBox({ placeHolder: "Enter controller name: " })
+        let input = await vscode.window.showInputBox({
+            placeHolder: "Enter controller name: ",
+            ignoreFocusOut: true
+        })
         if (!input)
             return vscode.window.showInformationMessage("Cancel!. Do not input service name.");
 

@@ -13,7 +13,10 @@ export async function createEntity(fsPath: string) {
         return vscode.window.showInformationMessage("Please select 'entity' folder")
     }
 
-    let entity = await vscode.window.showInputBox({ placeHolder: "Enter entity name: " })
+    let entity = await vscode.window.showInputBox({ 
+        placeHolder: "Enter entity name: ",
+        ignoreFocusOut: true
+    })
     if (!entity) {
         return vscode.window.showInformationMessage("Cancel!. Do not input entity name.");
     }

@@ -73,6 +73,12 @@ export class FSProvider {
         return files.toString().split('\n') || []
     }
 
+    static getContentInFile(folderPath: string) {
+        const fullPath = path.join(ROOT_PATH, folderPath);
+        const files = fsExtra.readFileSync(fullPath)
+        return files.toString()
+    }
+
     static isValidStructure() {
         return FSProvider.checkExist('src/Server.ts')
     }

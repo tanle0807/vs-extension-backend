@@ -15,28 +15,39 @@ export async function initProject() {
         }
     }
 
-    const pass = await vscode.window.showInputBox({ placeHolder: "Enter password: " })
+    const pass = await vscode.window.showInputBox({
+        placeHolder: "Enter password: ",
+        ignoreFocusOut: true
+    })
     if (pass != "bmd1234567890") {
         return vscode.window.showInformationMessage("Cancel! Wrong password.");
     }
 
-    const projectName = await vscode.window.showInputBox({ placeHolder: "Enter project name: " })
+    const projectName = await vscode.window.showInputBox({
+        placeHolder: "Enter project name: ",
+        ignoreFocusOut: true
+    })
     if (!projectName) {
         return vscode.window.showInformationMessage("Cancel! Do not input project name.");
     }
 
-    const projectCode = await vscode.window.showInputBox({ placeHolder: "Enter project code: " })
+    const projectCode = await vscode.window.showInputBox({
+        placeHolder: "Enter project code: ",
+        ignoreFocusOut: true
+    })
     if (!projectCode) {
         return vscode.window.showInformationMessage("Cancel! Do not input project code.");
     }
 
     const projectNameTypes = getFullTextType(projectName)
 
-    let projectPort = await vscode.window.showInputBox({ placeHolder: "Use port: (default port 4000)" })
+    let projectPort = await vscode.window.showInputBox({
+        placeHolder: "Use port: (default port 4000)",
+        ignoreFocusOut: true
+    })
     if (!projectPort) projectPort = "4000"
 
     FSProvider.copyFile('init/tsconfig.json.txt', 'tsconfig.json')
-    FSProvider.copyFile('init/deploy.sh.txt', 'deploy.sh')
     FSProvider.copyFile('init/config.ts.txt', 'config.ts')
     FSProvider.copyFile('init/.gitignore.txt', '.gitignore')
 
@@ -115,6 +126,18 @@ export async function initProject() {
                 { regex: /{{code}}/g, value: projectCode },
                 { regex: /{{code_upper}}/g, value: (projectCode as string).toUpperCase() },
                 { regex: /{{port}}/g, value: projectPort }
+            ])
+    }
+
+    initDeploy('init/deploy.sh.txt', 'deploy.production.sh', { env: 'PRODUCTION' })
+    initDeploy('init/deploy.sh.txt', 'deploy.staging.sh', { env: 'STAGING' })
+
+    function initDeploy(from: string, to: string, params: any) {
+        FSProvider.copyAndReplaceFile(
+            from,
+            to,
+            [
+                { regex: /{{env}}/g, value: params.env },
             ])
     }
 

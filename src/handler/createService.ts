@@ -19,7 +19,10 @@ export async function createService(fsPath: string) {
     if (entitySelected && entitySelected != OTHER) {
         service = entitySelected
     } else {
-        let input = await vscode.window.showInputBox({ placeHolder: "Enter service name: " })
+        let input = await vscode.window.showInputBox({
+            placeHolder: "Enter service name: ",
+            ignoreFocusOut: true
+        })
         if (!input)
             return vscode.window.showInformationMessage("Cancel!. Do not input service name.");
 

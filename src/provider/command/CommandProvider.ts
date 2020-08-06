@@ -13,10 +13,12 @@ export enum BMDCommand {
     AddModuleConfiguration = 'bmdextension.configuration',
 }
 
-export class DepNodeProvider implements vscode.TreeDataProvider<any> {
+export class CommandProvider implements vscode.TreeDataProvider<any> {
 
     private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> = new vscode.EventEmitter<Dependency | undefined | void>();
     readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | void> = this._onDidChangeTreeData.event;
+
+    // vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
 
     constructor(private workspaceRoot: any) {
     }
@@ -34,42 +36,34 @@ export class DepNodeProvider implements vscode.TreeDataProvider<any> {
             {
                 id: BMDCommand.Init,
                 title: 'BMD: Init Project',
-                params: []
             },
             {
                 id: BMDCommand.AddModuleConfiguration,
-                title: 'BMD: Add Module Configuration',
-                params: []
+                title: 'BMD: Add Module Configuration'
             },
             {
                 id: BMDCommand.AddModuleContentDefine,
-                title: 'BMD: Add Module Content Define',
-                params: []
+                title: 'BMD: Add Module Content Define'
             },
             {
                 id: BMDCommand.CreateController,
-                title: 'BMD: New Controller',
-                params: []
+                title: 'BMD: New Controller'
             },
             {
                 id: BMDCommand.CreateControllerResource,
-                title: 'BMD: New Controller Resource',
-                params: []
+                title: 'BMD: New Controller Resource'
             },
             {
                 id: BMDCommand.CreateEntity,
-                title: 'BMD: New Entity',
-                params: []
+                title: 'BMD: New Entity'
             },
             {
                 id: BMDCommand.CreateEntityRequest,
-                title: 'BMD: New Entity Request',
-                params: []
+                title: 'BMD: New Entity Request'
             },
             {
                 id: BMDCommand.CreateService,
-                title: 'BMD: New Service',
-                params: []
+                title: 'BMD: New Service'
             },
         ]
 
@@ -87,51 +81,9 @@ export class DepNodeProvider implements vscode.TreeDataProvider<any> {
 
         return Promise.resolve(commandTree);
     }
-
-	/**
-	 * Given the path to package.json, read all its dependencies and devDependencies.
-	 */
-    // private getDepsInPackageJson(packageJsonPath: string): Dependency[] {
-    //     if (this.pathExists(packageJsonPath)) {
-    //         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-
-    //         const toDep = (moduleName: string, version: string): Dependency => {
-    //             if (this.pathExists(path.join(this.workspaceRoot, 'node_modules', moduleName))) {
-    //                 return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.Collapsed);
-    //             } else {
-    //                 return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.None, {
-    //                     command: 'extension.openPackageOnNpm',
-    //                     title: '',
-    //                     arguments: [moduleName]
-    //                 });
-    //             }
-    //         };
-
-    //         const deps = packageJson.dependencies
-    //             ? Object.keys(packageJson.dependencies).map(dep => toDep(dep, packageJson.dependencies[dep]))
-    //             : [];
-    //         const devDeps = packageJson.devDependencies
-    //             ? Object.keys(packageJson.devDependencies).map(dep => toDep(dep, packageJson.devDependencies[dep]))
-    //             : [];
-    //         return deps.concat(devDeps);
-    //     } else {
-    //         return [];
-    //     }
-    // }
-
-    // private pathExists(p: string): boolean {
-    //     try {
-    //         fs.accessSync(p);
-    //     } catch (err) {
-    //         return false;
-    //     }
-
-    //     return true;
-    // }
 }
 
 export class Dependency extends vscode.TreeItem {
-
     constructor(
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
@@ -146,8 +98,8 @@ export class Dependency extends vscode.TreeItem {
     }
 
     iconPath = {
-        light: path.join(__filename, '..', '..', 'media', 'light', 'infinite.svg'),
-        dark: path.join(__filename, '..', '..', 'media', 'dark', 'infinite.svg')
+        light: path.join(__filename, '..', '..', '..', '..', 'media', 'light', 'infinite.svg'),
+        dark: path.join(__filename, '..', '..', '..', '..', 'media', 'dark', 'infinite.svg')
     };
 
     contextValue = this.context;

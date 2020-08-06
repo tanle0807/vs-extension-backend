@@ -83,6 +83,22 @@
 					"light": "media/light/exe.svg",
 					"dark": "media/dark/exe.svg"
 				}
+			},
+			{
+				"command": "bmdextension.deployStaging",
+				"title": "BMD: Deploy STAGING",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
+			},
+			{
+				"command": "bmdextension.deployProduct",
+				"title": "BMD: Deploy PRODUCT",
+				"icon": {
+					"light": "media/light/exe.svg",
+					"dark": "media/dark/exe.svg"
+				}
 			}
 		],
 		"menus": {
@@ -153,6 +169,16 @@
 					"when": "viewItem == bmdextension.configuration",
 					"group": "inline",
 					"command": "bmdextension.configuration"
+				},
+				{
+					"when": "viewItem == bmdextension.deployProduct",
+					"group": "inline",
+					"command": "bmdextension.deployProduct"
+				},
+				{
+					"when": "viewItem == bmdextension.deployStaging",
+					"group": "inline",
+					"command": "bmdextension.deployStaging"
 				}
 			]
 		},
@@ -169,8 +195,7 @@
 			"explorer": [
 				{
 					"id": "bmdextension1",
-					"name": "BMD Command",
-					"icon": "media/dark/bmd.svg"
+					"name": "BMD Command"
 				},
 				{
 					"id": "deploy1",
@@ -180,8 +205,7 @@
 			"bmdPackage": [
 				{
 					"id": "bmdextension2",
-					"name": "BMD Command",
-					"icon": "media/dark/bmd.svg"
+					"name": "BMD Command"
 				},
 				{
 					"id": "deploy2",
